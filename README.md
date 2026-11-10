@@ -59,7 +59,7 @@ Kairos/
 Requisiti: Node.js 20 o superiore e un'istanza MongoDB (locale o Atlas).
 
 ```bash
-git clone <url-del-repository>
+git clone https://github.com/MDL-CNAKE/Kairos.git
 cd Kairos
 npm install
 cp .env.example .env      # poi inserisci i tuoi valori
