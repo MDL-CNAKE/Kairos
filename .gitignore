@@ -1,0 +1,19 @@
+# Dipendenze
+node_modules/
+
+# Variabili d'ambiente (contengono segreti)
+.env
+.env.*
+!.env.example
+
+# Log e coverage
+npm-debug.log*
+logs/
+*.log
+coverage/
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

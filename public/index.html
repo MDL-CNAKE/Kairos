@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0c0c0c;
+      --surface:   #141414;
+      --surface2:  #1e1e1e;
+      --border:    #2a2a2a;
+      --accent:    #f0a500;
+      --accent-h:  #fbbf24;
+      --text:      #f0ede8;
+      --muted:     #666;
+      --todo:      #444;
+      --progress:  #d97706;
+      --done:      #16a34a;
+      --low:       #3a3a3a;
+      --medium:    #d97706;
+      --high:      #dc2626;
+      --danger:    #ef4444;
+      --radius:    5px;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Utility ── */
+    .hidden { display: none !important; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 3px; font-size: 10px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+    }
+    .badge-todo     { background: #1e1e1e; color: #555; border: 1px solid #333; }
+    .badge-progress { background: #2a1f00; color: var(--accent); border: 1px solid #3d2d00; }
+    .badge-done     { background: #0a1f0e; color: #4ade80; border: 1px solid #164c27; }
+    .badge-low      { background: #1e1e1e; color: #555; border: 1px solid #333; }
+    .badge-medium   { background: #2a1f00; color: var(--accent); border: 1px solid #3d2d00; }
+    .badge-high     { background: #2a0a0a; color: #f87171; border: 1px solid #4a1515; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius); border: none; cursor: pointer;
+      font-size: 13px; font-weight: 500; transition: background .15s, color .15s, opacity .15s;
+      font-family: inherit;
+    }
+    .btn-primary  { background: var(--accent); color: #000; font-weight: 700; }
+    .btn-primary:hover { background: var(--accent-h); }
+    .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: #444; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    input, textarea {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); padding: 9px 12px; font-size: 14px; width: 100%; outline: none;
+      transition: border-color .15s; font-family: inherit;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    input::placeholder { color: #3a3a3a; }
+    .error-msg { color: var(--danger); font-size: 12px; margin-top: 6px; min-height: 18px; }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #2a1f00; color: var(--accent); border: 1px solid #3d2d00;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; flex-shrink: 0;
+    }
+
+    /* ── Toast ── */
+    #toast-container {
+      position: fixed; bottom: 20px; right: 20px;
+      display: flex; flex-direction: column; gap: 8px; z-index: 9999;
+    }
+    .toast {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 10px 16px; border-radius: var(--radius);
+      font-size: 13px; max-width: 300px; color: var(--text);
+      animation: slideIn .2s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ── LOGIN ── */
+    #view-login {
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; background: var(--bg);
+    }
+    .login-wrap { width: 380px; }
+    .login-logo {
+      font-size: 26px; font-weight: 800; letter-spacing: -1px; margin-bottom: 2px;
+    }
+    .login-logo span { color: var(--accent); }
+    .login-tagline { color: var(--muted); margin-bottom: 36px; font-size: 13px; }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 32px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .6px;
+    }
+    .login-card .btn-primary {
+      width: 100%; justify-content: center; padding: 11px; font-size: 14px; margin-top: 6px;
+    }
+    .login-divider {
+      height: 1px; background: var(--border); margin: 28px 0 20px;
+    }
+    .login-hint { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .login-hint code {
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 1px 5px; border-radius: 3px; font-size: 11px; color: var(--accent);
+    }
+
+    /* ── NAVBAR ── */
+    #navbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 52px;
+    }
+    .nav-logo {
+      font-size: 16px; font-weight: 800; letter-spacing: -.5px; cursor: pointer;
+      display: flex; align-items: center; gap: 2px;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-user  { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+
+    /* ── DASHBOARD ── */
+    #view-dashboard { padding: 36px 28px; }
+    .dash-header { margin-bottom: 28px; }
+    .dash-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; letter-spacing: -.5px; }
+    .dash-sub   { color: var(--muted); font-size: 13px; }
+    .projects-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px;
+    }
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 20px; cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .project-card:hover { border-color: var(--accent); background: #181818; }
+    .project-card-title {
+      font-weight: 700; font-size: 15px; margin-bottom: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .project-card-desc {
+      color: var(--muted); font-size: 12px; line-height: 1.6; min-height: 36px;
+      overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .project-card-footer {
+      display: flex; align-items: center; justify-content: space-between; margin-top: 16px;
+      padding-top: 14px; border-top: 1px solid var(--border);
+    }
+    .project-cat {
+      font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .project-members { display: flex; gap: 4px; }
+    .empty-state { color: var(--muted); text-align: center; padding: 60px 20px; }
+    .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+
+    /* ── PROJECT VIEW ── */
+    #view-project { display: flex; flex-direction: column; height: calc(100vh - 52px); overflow: hidden; }
+    .project-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px; border-bottom: 1px solid var(--border);
+      background: var(--bg); flex-shrink: 0;
+    }
+    .project-header-title { font-weight: 700; font-size: 15px; }
+    .project-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── KANBAN ── */
+    #kanban-area {
+      flex: 1; display: flex; overflow-x: auto;
+      padding: 20px; gap: 14px; background: var(--bg);
+    }
+    .kanban-col {
+      flex: 1; min-width: 240px; max-width: 320px;
+      display: flex; flex-direction: column;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden;
+    }
+    .kanban-col.drag-over { border-color: var(--accent); }
+    .col-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .col-title { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+    .col-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .col-dot-todo     { background: #444; }
+    .col-dot-progress { background: var(--accent); }
+    .col-dot-done     { background: #22c55e; }
+    .col-count {
+      background: var(--surface2); color: var(--muted);
+      border-radius: 3px; padding: 1px 6px; font-size: 11px; font-weight: 700;
+    }
+    .col-cards { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .col-cards:empty::after {
+      content: 'Nessun task'; color: #333; font-size: 12px;
+      text-align: center; padding: 24px 0; display: block;
+    }
+
+    /* ── TASK CARD ── */
+    .task-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px; cursor: grab; transition: border-color .1s, opacity .1s;
+      user-select: none;
+    }
+    .task-card:hover { border-color: #3a3a3a; }
+    .task-card.dragging { opacity: .3; cursor: grabbing; }
+    .task-title { font-weight: 500; font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+    .task-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .task-assignee {
+      display: flex; align-items: center; gap: 5px;
+      color: var(--muted); font-size: 11px; margin-left: auto;
+    }
+    .task-deadline { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 3px; }
+
+    /* ── CHAT ── */
+    #chat-panel {
+      width: 290px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .chat-header {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+      color: var(--muted); display: flex; align-items: center; gap: 8px;
+    }
+    .chat-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    #chat-messages {
+      flex: 1; overflow-y: auto; padding: 12px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .msg { display: flex; gap: 8px; align-items: flex-start; }
+    .msg-bubble { background: var(--surface2); border-radius: 6px; padding: 8px 10px; flex: 1; }
+    .msg-sender { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+    .msg-text   { font-size: 13px; line-height: 1.5; color: var(--text); word-break: break-word; }
+    .msg-time   { font-size: 10px; color: #3a3a3a; margin-top: 4px; }
+    .msg.mine .msg-bubble { background: #1e1a0e; border: 1px solid #2a2200; }
+    .msg.mine .msg-sender { color: var(--accent-h); }
+    .chat-footer { padding: 10px 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+    .chat-footer input { flex: 1; }
+    .chat-footer .btn { flex-shrink: 0; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block; width: 18px; height: 18px; border: 2px solid #222;
+      border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+  </style>
+</head>
+<body>
+
+<!-- ── TOAST ── -->
+<div id="toast-container"></div>
+
+<!-- ── NAVBAR (hidden on login) ── -->
+<nav id="navbar" class="hidden">
+  <span class="nav-logo" onclick="goToDashboard()">Task<span>Flow</span></span>
+  <div class="nav-right">
+    <div class="nav-user">
+      <div class="avatar" id="nav-avatar">?</div>
+      <span id="nav-username"></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Esci</button>
+  </div>
+</nav>
+
+<!-- ═══════════ VIEW: LOGIN ═══════════ -->
+<div id="view-login">
+  <div class="login-wrap">
+    <div class="login-logo">Task<span>Flow</span></div>
+    <div class="login-tagline">Gestione progetti e task collaborativa</div>
+    <div class="login-card">
+      <div class="form-group">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="tu@esempio.it" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="login-password" type="password" placeholder="••••••••" />
+      </div>
+      <div class="error-msg" id="login-error"></div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Accedi</button>
+      <div class="login-divider"></div>
+      <div class="login-hint">
+        Demo: <code>marguerite@taskflow.dev</code> / <code>Password123!</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIEW: DASHBOARD ═══════════ -->
+<div id="view-dashboard" class="hidden">
+  <div class="dash-header">
+    <div class="dash-title">I miei progetti</div>
+    <div class="dash-sub" id="dash-sub">Caricamento...</div>
+  </div>
+  <div class="projects-grid" id="projects-grid">
+    <div class="empty-state">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIEW: PROJECT ═══════════ -->
+<div id="view-project" class="hidden">
+  <div class="project-header">
+    <button class="btn btn-ghost btn-sm" onclick="goToDashboard()">← Dashboard</button>
+    <div class="project-header-title" id="proj-title"></div>
+    <span class="badge" id="proj-cat-badge"></span>
+  </div>
+
+  <div class="project-body">
+    <!-- KANBAN -->
+    <div id="kanban-area">
+      <!-- todo -->
+      <div class="kanban-col" id="col-todo"
+        ondragover="onDragOver(event,'todo')" ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event,'todo')">
+        <div class="col-header">
+          <div class="col-title">
+            <span class="col-dot col-dot-todo"></span> To Do
+          </div>
+          <span class="col-count" id="count-todo">0</span>
+        </div>
+        <div class="col-cards" id="cards-todo"></div>
+      </div>
+      <!-- in_progress -->
+      <div class="kanban-col" id="col-in_progress"
+        ondragover="onDragOver(event,'in_progress')" ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event,'in_progress')">
+        <div class="col-header">
+          <div class="col-title">
+            <span class="col-dot col-dot-progress"></span> In Progress
+          </div>
+          <span class="col-count" id="count-in_progress">0</span>
+        </div>
+        <div class="col-cards" id="cards-in_progress"></div>
+      </div>
+      <!-- done -->
+      <div class="kanban-col" id="col-done"
+        ondragover="onDragOver(event,'done')" ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event,'done')">
+        <div class="col-header">
+          <div class="col-title">
+            <span class="col-dot col-dot-done"></span> Done
+          </div>
+          <span class="col-count" id="count-done">0</span>
+        </div>
+        <div class="col-cards" id="cards-done"></div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat-panel">
+      <div class="chat-header">
+        <span class="chat-live-dot"></span> Chat progetto
+      </div>
+      <div id="chat-messages"></div>
+      <div class="chat-footer">
+        <input id="chat-input" type="text" placeholder="Scrivi un messaggio…"
+          onkeydown="if(event.key==='Enter')sendChatMessage()" />
+        <button class="btn btn-primary btn-sm" onclick="sendChatMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCRIPT ═══════════ -->
+<script>
+/* ────────────────────────── STATE ────────────────────────── */
+const st = {
+  token:   null,
+  user:    null,
+  project: null,
+  socket:  null,
+};
+let draggedTaskId = null;
+
+/* ────────────────────────── API ────────────────────────── */
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (st.token) opts.headers['Authorization'] = `Bearer ${st.token}`;
+  if (body)     opts.body = JSON.stringify(body);
+  const res = await fetch(`/api${path}`, opts);
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Errore ${res.status}`);
+  return data;
+}
+
+/* ────────────────────────── VIEWS ────────────────────────── */
+function showView(id) {
+  ['view-login','view-dashboard','view-project'].forEach(v => {
+    document.getElementById(v).classList.toggle('hidden', v !== id);
+  });
+  document.getElementById('navbar').classList.toggle('hidden', id === 'view-login');
+}
+
+/* ────────────────────────── TOAST ────────────────────────── */
+function toast(msg, duration = 3000) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+/* ────────────────────────── LOGIN ────────────────────────── */
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Compila tutti i campi.'; return; }
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled  = true;
+  try {
+    const data = await api('POST', '/auth/login', { email, password });
+    st.token = data.accessToken;
+    st.user  = data.user;
+    document.getElementById('nav-username').textContent = st.user.username;
+    document.getElementById('nav-avatar').textContent   = st.user.username[0].toUpperCase();
+    initSocket();
+    await goToDashboard();
+  } catch (e) {
+    errEl.textContent = e.message;
+  } finally {
+    btn.textContent = 'Accedi';
+    btn.disabled    = false;
+  }
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* ────────────────────────── LOGOUT ────────────────────────── */
+function logout() {
+  if (st.socket) { st.socket.disconnect(); st.socket = null; }
+  st.token = st.user = st.project = null;
+  showView('view-login');
+  document.getElementById('login-email').value    = '';
+  document.getElementById('login-password').value = '';
+}
+
+/* ────────────────────────── DASHBOARD ────────────────────────── */
+async function goToDashboard() {
+  showView('view-dashboard');
+  document.getElementById('dash-sub').textContent   = 'Caricamento…';
+  document.getElementById('projects-grid').innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  try {
+    const data  = await api('GET', '/projects/dashboard');
+    const projects = [...(data.created || []), ...(data.member || [])];
+    const grid  = document.getElementById('projects-grid');
+    document.getElementById('dash-sub').textContent =
+      `${projects.length} progetto${projects.length !== 1 ? 'i' : ''}`;
+    if (!projects.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📂</div><div>Nessun progetto ancora.</div></div>';
+      return;
+    }
+    grid.innerHTML = projects.map(p => `
+      <div class="project-card" onclick="openProject(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+        <div class="project-card-title">${esc(p.title)}</div>
+        <div class="project-card-desc">${esc(p.description || '—')}</div>
+        <div class="project-card-footer">
+          <span class="project-cat">${esc(p.category)}</span>
+          <div class="project-members">
+            ${(p.members || []).slice(0,4).map(m => { const u = m.user?.username || m.userId?.username || '?'; return `<div class="avatar" title="${esc(u)}">${u[0].toUpperCase()}</div>`; }).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('projects-grid').innerHTML = `<div class="empty-state" style="color:var(--danger)">${esc(e.message)}</div>`;
+  }
+}
+
+/* ────────────────────────── PROJECT ────────────────────────── */
+async function openProject(project) {
+  st.project = project;
+  showView('view-project');
+  document.getElementById('proj-title').textContent = project.title;
+  const badge = document.getElementById('proj-cat-badge');
+  badge.textContent = project.category;
+  badge.className   = 'badge badge-todo';
+
+  // Join socket room
+  if (st.socket) st.socket.emit('project:join', { projectId: project._id });
+
+  await Promise.all([ loadBoard(), loadMessages() ]);
+}
+
+/* ────────────────────────── KANBAN ────────────────────────── */
+async function loadBoard() {
+  ['todo','in_progress','done'].forEach(s => {
+    document.getElementById(`cards-${s}`).innerHTML = '<div class="spinner" style="margin:auto;display:block"></div>';
+  });
+  try {
+    const data = await api('GET', `/projects/${st.project._id}/tasks/board`);
+    const board = data.board || data;
+    ['todo','in_progress','done'].forEach(s => renderColumn(s, board[s] || []));
+  } catch (e) {
+    toast('Errore caricamento board: ' + e.message);
+  }
+}
+
+function renderColumn(status, tasks) {
+  document.getElementById(`count-${status}`).textContent = tasks.length;
+  document.getElementById(`cards-${status}`).innerHTML   = tasks.map(taskCard).join('');
+}
+
+const PRIORITY_BADGE = {
+  low:    '<span class="badge badge-low">low</span>',
+  medium: '<span class="badge badge-medium">med</span>',
+  high:   '<span class="badge badge-high">high</span>',
+};
+
+function taskCard(t) {
+  const assigneeHtml = t.assigneeId
+    ? `<div class="task-assignee"><div class="avatar" style="width:20px;height:20px;font-size:9px">${(t.assigneeId.username||'?')[0].toUpperCase()}</div>${esc(t.assigneeId.username)}</div>`
+    : '';
+  const deadlineHtml = t.deadline
+    ? `<span class="task-deadline">📅 ${new Date(t.deadline).toLocaleDateString('it-IT')}</span>`
+    : '';
+  return `<div class="task-card"
+      draggable="true"
+      data-id="${t._id}"
+      ondragstart="dragStart(event,'${t._id}')"
+      ondragend="dragEnd(event)">
+    <div class="task-title">${esc(t.title)}</div>
+    <div class="task-meta">
+      ${PRIORITY_BADGE[t.priority] || ''}
+      ${deadlineHtml}
+      ${assigneeHtml}
+    </div>
+  </div>`;
+}
+
+/* ── Drag & drop ── */
+function dragStart(e, id) {
+  draggedTaskId = id;
+  setTimeout(() => e.target.classList.add('dragging'), 0);
+}
+function dragEnd(e) {
+  e.target.classList.remove('dragging');
+}
+function onDragOver(e, status) {
+  e.preventDefault();
+  document.getElementById(`col-${status}`).classList.add('drag-over');
+}
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+async function onDrop(e, newStatus) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!draggedTaskId) return;
+  const taskId = draggedTaskId;
+  draggedTaskId = null;
+  try {
+    await api('PATCH', `/projects/${st.project._id}/tasks/${taskId}/status`, { status: newStatus });
+    await loadBoard();
+    toast(`Task spostato → ${labelFor(newStatus)}`);
+  } catch (err) {
+    toast('Errore: ' + err.message);
+  }
+}
+
+function labelFor(s) { return { todo:'To Do', in_progress:'In Progress', done:'Done' }[s] || s; }
+
+/* ────────────────────────── CHAT ────────────────────────── */
+async function loadMessages() {
+  document.getElementById('chat-messages').innerHTML = '<div class="spinner" style="margin:16px auto;display:block"></div>';
+  try {
+    const data = await api('GET', `/projects/${st.project._id}/chat/messages`);
+    const msgs = data.messages || data;
+    const box  = document.getElementById('chat-messages');
+    box.innerHTML = msgs.length ? msgs.map(m => msgHtml(m)).join('') : '<div style="color:#333;text-align:center;padding:20px;font-size:12px">Nessun messaggio ancora.</div>';
+    box.scrollTop = box.scrollHeight;
+  } catch (e) {
+    toast('Errore chat: ' + e.message);
+  }
+}
+
+function msgHtml(m) {
+  // Il campo mittente può essere userId (schema DB) o senderId (eventi socket)
+  const sender = m.userId || m.senderId;
+  const isMine = sender?._id === st.user?._id || sender === st.user?._id;
+  const name   = sender?.username || 'Utente';
+  const time   = m.createdAt ? new Date(m.createdAt).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }) : '';
+  return `<div class="msg ${isMine ? 'mine' : ''}">
+    <div class="avatar" style="width:24px;height:24px;font-size:9px">${name[0].toUpperCase()}</div>
+    <div class="msg-bubble">
+      <div class="msg-sender">${esc(name)}</div>
+      <div class="msg-text">${esc(m.text)}</div>
+      <div class="msg-time">${time}</div>
+    </div>
+  </div>`;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  try {
+    await api('POST', `/projects/${st.project._id}/chat/messages`, { text });
+    // il messaggio arriva via socket (message:received)
+  } catch (e) {
+    toast('Errore invio: ' + e.message);
+    input.value = text;
+  }
+}
+
+/* ────────────────────────── SOCKET.IO ────────────────────────── */
+function initSocket() {
+  st.socket = io({ auth: { token: st.token } });
+
+  st.socket.on('connect', () => {
+    if (st.project) st.socket.emit('project:join', { projectId: st.project._id });
+  });
+
+  st.socket.on('message:received', (msg) => {
+    const box = document.getElementById('chat-messages');
+    if (!box) return;
+    const empty = box.querySelector('div[style*="color:#333"]');
+    if (empty) empty.remove();
+    box.insertAdjacentHTML('beforeend', msgHtml(msg));
+    box.scrollTop = box.scrollHeight;
+    const sender = msg.userId || msg.senderId;
+    const senderName = sender?.username || 'Qualcuno';
+    if ((sender?._id || sender) !== st.user?._id) {
+      toast(`💬 ${senderName}: ${msg.text.slice(0, 60)}`);
+    }
+  });
+
+  st.socket.on('task:assigned', () => {
+    if (st.project) loadBoard();
+  });
+
+  st.socket.on('connect_error', () => {
+    // silenzioso in demo
+  });
+}
+
+/* ────────────────────────── UTILS ────────────────────────── */
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

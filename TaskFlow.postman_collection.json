@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "TaskFlow API",
+    "description": "Collezione completa degli endpoint REST di TaskFlow. Importa in Postman, imposta la variabile `baseUrl` e usa il flow Auth per ottenere i token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "projectId", "value": "", "type": "string" },
+    { "key": "taskId", "value": "", "type": "string" },
+    { "key": "notificationId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { const b = pm.response.json(); pm.collectionVariables.set('accessToken', b.accessToken); pm.collectionVariables.set('refreshToken', b.refreshToken); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 200) { const b = pm.response.json(); pm.collectionVariables.set('accessToken', b.accessToken); pm.collectionVariables.set('refreshToken', b.refreshToken); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 200) { const b = pm.response.json(); pm.collectionVariables.set('accessToken', b.accessToken); pm.collectionVariables.set('refreshToken', b.refreshToken); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "Catalog (public)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/projects/catalog?category=web&page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "projects", "catalog"], "query": [{ "key": "category", "value": "web" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "projects", "dashboard"] }
+          }
+        },
+        {
+          "name": "Create Project",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('projectId', pm.response.json().project._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"My TaskFlow Project\",\n  \"description\": \"Progetto di esempio\",\n  \"category\": \"web\",\n  \"technologies\": [\"Node.js\", \"React\"],\n  \"visibility\": \"public\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects", "host": ["{{baseUrl}}"], "path": ["api", "projects"] }
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Title\",\n  \"description\": \"Descrizione aggiornata\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}"] }
+          }
+        },
+        {
+          "name": "Archive Project",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/archive", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "archive"] }
+          }
+        },
+        {
+          "name": "Unarchive Project",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/unarchive", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "unarchive"] }
+          }
+        },
+        {
+          "name": "Add Member",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": \"<USER_ID_TO_INVITE>\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/members", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "members"] }
+          }
+        },
+        {
+          "name": "Remove Member",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/members/<USER_ID>", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "members", "<USER_ID>"] }
+          }
+        },
+        {
+          "name": "Report Project",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Contenuto inappropriato\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/report", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "report"] }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Board",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/board", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "board"] }
+          }
+        },
+        {
+          "name": "List Tasks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Create Task",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('taskId', pm.response.json().task._id); }"], "type": "text/javascript" } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Implementare login\",\n  \"description\": \"Creare form di autenticazione\",\n  \"priority\": \"high\",\n  \"deadline\": \"2026-11-08T00:00:00.000Z\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks"] }
+          }
+        },
+        {
+          "name": "Get Task",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Titolo aggiornato\",\n  \"priority\": \"medium\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        },
+        {
+          "name": "Change Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"in_progress\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}", "status"] }
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/tasks/{{taskId}}", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "tasks", "{{taskId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Get Message History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/chat/messages?limit=50", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "chat", "messages"], "query": [{ "key": "limit", "value": "50" }] }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"text\": \"Ciao a tutti!\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/projects/{{projectId}}/chat/messages", "host": ["{{baseUrl}}"], "path": ["api", "projects", "{{projectId}}", "chat", "messages"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api", "notifications"] }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "read-all"] }
+          }
+        },
+        {
+          "name": "Mark One Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["api", "notifications", "{{notificationId}}", "read"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
+          }
+        },
+        {
+          "name": "Block User",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users/<USER_ID>/block", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "<USER_ID>", "block"] }
+          }
+        },
+        {
+          "name": "Unblock User",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users/<USER_ID>/unblock", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users", "<USER_ID>", "unblock"] }
+          }
+        },
+        {
+          "name": "List All Projects (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/projects", "host": ["{{baseUrl}}"], "path": ["api", "admin", "projects"] }
+          }
+        },
+        {
+          "name": "Restore Hidden Project",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/projects/{{projectId}}/restore", "host": ["{{baseUrl}}"], "path": ["api", "admin", "projects", "{{projectId}}", "restore"] }
+          }
+        }
+      ]
+    }
+  ]
+}
