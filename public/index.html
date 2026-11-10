@@ -220,14 +220,9 @@
       padding: 12px; cursor: grab; transition: border-color .1s, opacity .1s;
       user-select: none;
     }
-    .task-card:hover { border-color: #3a3a3a; }
     .task-card.dragging { opacity: .3; cursor: grabbing; }
     .task-title { font-weight: 500; font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
     .task-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .task-assignee {
-      display: flex; align-items: center; gap: 5px;
-      color: var(--muted); font-size: 11px; margin-left: auto;
-    }
     .task-deadline { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 3px; }
 
     /* ── CHAT ── */
@@ -289,7 +284,7 @@
     .col-sort { padding: 3px 4px; font-size: 11px; margin-left: auto; margin-right: 8px; max-width: 110px; }
     /* ── Card task ── */
     .task-card { position: relative; border-left: 3px solid transparent; cursor: grab; transition: border-color .15s, transform .15s, box-shadow .15s; }
-    .task-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+    .task-card:hover { border-color: #3a3a3a; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
     .task-card.prio-high   { border-left-color: #dc2626; }
     .task-card.prio-medium { border-left-color: #d97706; }
     .task-card.prio-low    { border-left-color: #3a3a3a; }
@@ -305,7 +300,6 @@
     .card-drag   { transform: rotate(2.5deg) scale(1.03); box-shadow: 0 14px 30px rgba(0,0,0,.6) !important; cursor: grabbing; opacity: 1 !important; }
     #kanban-area.is-dragging .kanban-col { border-style: dashed; }
     #kanban-area.is-dragging .col-cards { min-height: 80px; }
-    .kanban-col.drag-over { border-color: var(--accent); }
     /* ── Errori nei form ── */
     .form-group.has-error input, .form-group.has-error textarea, .form-group.has-error select { border-color: var(--danger) !important; }
     .field-msg { color: var(--danger); font-size: 11px; margin-top: 4px; }
@@ -397,7 +391,7 @@
 <nav id="navbar" class="hidden">
   <span class="nav-logo" onclick="goToDashboard()">Task<span>Flow</span></span>
   <div class="nav-right">
-    <button class="bell" id="bell-btn" onclick="toggleNotifications()" title="Notifiche">🔔<span class="bell-count hidden" id="bell-count">0</span></button>
+    <button class="bell" onclick="toggleNotifications()" title="Notifiche">🔔<span class="bell-count hidden" id="bell-count">0</span></button>
     <div class="nav-user">
       <div class="avatar" id="nav-avatar">?</div>
       <span id="nav-username"></span>
@@ -707,6 +701,7 @@ document.getElementById('login-password').addEventListener('keydown', e => {
 /* ────────────────────────── LOGOUT ────────────────────────── */
 function logout() {
   if (st.socket) { st.socket.disconnect(); st.socket = null; }
+  st.joinedProject = null;
   st.token = st.user = st.project = null;
   showView('view-login');
   document.getElementById('login-email').value    = '';
@@ -715,6 +710,7 @@ function logout() {
 
 /* ────────────────────────── DASHBOARD ────────────────────────── */
 async function goToDashboard() {
+  leaveProjectRoom();
   loadNotifications();
   if (st.detail && st.detail.taskId) closeTaskDetail();
   showView('view-dashboard');
@@ -757,7 +753,7 @@ async function openProject(project) {
   badge.className   = 'badge badge-todo';
 
   // Join socket room
-  if (st.socket) st.socket.emit('project:join', { projectId: project._id });
+  joinProjectRoom(project._id);
 
   await Promise.all([ loadBoard(), loadMessages() ]);
 }
@@ -1038,12 +1034,11 @@ async function loadMessages() {
 }
 
 function msgHtml(m) {
-  // Il campo mittente può essere userId (schema DB) o senderId (eventi socket)
-  const sender = m.userId || m.senderId;
-  const isMine = sender?._id === st.user?._id || sender === st.user?._id;
+  const sender = m.userId; // autore popolato dal backend ({ _id, username })
+  const isMine = String(sender?._id || sender) === String(st.user?._id);
   const name   = sender?.username || 'Utente';
   const time   = m.createdAt ? new Date(m.createdAt).toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }) : '';
-  return `<div class="msg ${isMine ? 'mine' : ''}">
+  return `<div class="msg ${isMine ? 'mine' : ''}" data-msg-id="${esc(m._id || '')}">
     <div class="avatar" style="width:24px;height:24px;font-size:9px">${name[0].toUpperCase()}</div>
     <div class="msg-bubble">
       <div class="msg-sender">${esc(name)}</div>
@@ -1059,39 +1054,63 @@ async function sendChatMessage() {
   if (!text) return;
   input.value = '';
   try {
-    await api('POST', `/projects/${st.project._id}/chat/messages`, { text });
-    // il messaggio arriva via socket (message:received)
+    const data = await api('POST', `/projects/${st.project._id}/chat/messages`, { text });
+    if (data && data.message) appendChatMessage(data.message);
   } catch (e) {
     toast('Errore invio: ' + e.message);
     input.value = text;
   }
 }
 
+/* Aggiunge un messaggio alla chat se non è già presente. Restituisce true se l'ha aggiunto. */
+function appendChatMessage(msg) {
+  const box = document.getElementById('chat-messages');
+  if (!box || !msg) return false;
+  if (msg._id && [...box.querySelectorAll('[data-msg-id]')].some(el => el.dataset.msgId === String(msg._id))) return false;
+  const empty = box.querySelector('div[style*="color:#333"]');
+  if (empty) empty.remove();
+  box.insertAdjacentHTML('beforeend', msgHtml(msg));
+  box.scrollTop = box.scrollHeight;
+  return true;
+}
+
 /* ────────────────────────── SOCKET.IO ────────────────────────── */
+function joinProjectRoom(projectId) {
+  if (!st.socket) return;
+  if (st.joinedProject && st.joinedProject !== projectId) st.socket.emit('project:leave', st.joinedProject);
+  st.joinedProject = projectId;
+  st.socket.emit('project:join', projectId, (res) => {
+    if (res && !res.ok) toast('Aggiornamenti in tempo reale non disponibili: ' + res.error);
+  });
+}
+
+function leaveProjectRoom() {
+  if (st.socket && st.joinedProject) st.socket.emit('project:leave', st.joinedProject);
+  st.joinedProject = null;
+}
+
 function initSocket() {
   st.socket = io({ auth: { token: st.token } });
 
   st.socket.on('connect', () => {
-    if (st.project) st.socket.emit('project:join', { projectId: st.project._id });
+    // Dopo una riconnessione il server ha dimenticato le stanze: si rientra
+    st.joinedProject = null;
+    if (st.project) joinProjectRoom(st.project._id);
   });
 
-  st.socket.on('message:received', (msg) => {
-    const box = document.getElementById('chat-messages');
-    if (!box) return;
-    const empty = box.querySelector('div[style*="color:#333"]');
-    if (empty) empty.remove();
-    box.insertAdjacentHTML('beforeend', msgHtml(msg));
-    box.scrollTop = box.scrollHeight;
-    const sender = msg.userId || msg.senderId;
-    const senderName = sender?.username || 'Qualcuno';
-    if ((sender?._id || sender) !== st.user?._id) {
-      toast(`💬 ${senderName}: ${msg.text.slice(0, 60)}`);
+  st.socket.on('message:received', (payload) => {
+    const msg = payload && payload.message ? payload.message : payload;
+    if (!msg || !st.project || String(msg.projectId) !== String(st.project._id)) return;
+    const added = appendChatMessage(msg);
+    const sender = msg.userId || {};
+    if (added && String(sender._id || sender) !== String(st.user && st.user._id)) {
+      toast(`💬 ${sender.username || 'Qualcuno'}: ${String(msg.text || '').slice(0, 60)}`);
     }
   });
 
-  st.socket.on('task:assigned', () => {
+  st.socket.on('notification:new', () => {
     loadNotifications();
-    if (st.project) loadBoard();
+    toast('🔔 Hai una nuova notifica');
   });
 
   ['task:created', 'task:updated', 'task:status_changed', 'task:deleted']
