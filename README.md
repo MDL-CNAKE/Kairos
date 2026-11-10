@@ -80,8 +80,8 @@ L'app risponde su `http://localhost:3000` (frontend demo) e l'API su `http://loc
 
 | Utente | Email | Password | Ruolo |
 |---|---|---|---|
-| marguerite | marguerite@taskflow.dev | Password123! | admin |
-| matteo | matteo@taskflow.dev | Password123! | user |
+| marguerite | marguerite@taskflow.dev | MiniKiwi123! | admin |
+| matteo | matteo@taskflow.dev | Banana456! | user |
 
 Sono credenziali di sviluppo, da non usare in produzione.
 

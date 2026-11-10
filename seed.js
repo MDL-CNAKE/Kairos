@@ -28,14 +28,14 @@ async function seed() {
   const marguerite = await User.create({
     username: 'marguerite',
     email:    'marguerite@taskflow.dev',
-    password: 'Password123!',
+    password: 'MiniKiwi123!',
     role:     'admin',
   });
 
   const matteo = await User.create({
     username: 'matteo',
     email:    'matteo@taskflow.dev',
-    password: 'Password123!',
+    password: 'Banana456!',
     role:     'user',
   });
 
@@ -162,8 +162,8 @@ async function seed() {
 
   console.log('\n========================================');
   console.log('  SEED COMPLETATO - Credenziali demo:');
-  console.log('  marguerite@taskflow.dev  ->  Password123!  (admin)');
-  console.log('  matteo@taskflow.dev      ->  Password123!  (user)');
+  console.log('  marguerite@taskflow.dev  ->  MiniKiwi123!  (admin)');
+  console.log('  matteo@taskflow.dev      ->  Banana456!    (user)');
   console.log('  http://localhost:3000');
   console.log('========================================\n');
 
