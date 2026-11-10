@@ -1,6 +1,6 @@
 /**
  * @module models/project
- * @description Schema Mongoose per i progetti di TaskFlow.
+ * @description Schema Mongoose per i progetti di Kairos.
  *   Include lo schema embedded per i membri (`memberSchema`) e
  *   indici per le query del catalogo pubblico.
  */

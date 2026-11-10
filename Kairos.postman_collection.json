@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "TaskFlow API",
-    "description": "Collezione completa degli endpoint REST di TaskFlow. Importa in Postman, imposta la variabile `baseUrl` e usa il flow Auth per ottenere i token.",
+    "name": "Kairos API",
+    "description": "Collezione completa degli endpoint REST di Kairos. Importa in Postman, imposta la variabile `baseUrl` e usa il flow Auth per ottenere i token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -89,7 +89,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }, { "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"title\": \"My TaskFlow Project\",\n  \"description\": \"Progetto di esempio\",\n  \"category\": \"web\",\n  \"technologies\": [\"Node.js\", \"React\"],\n  \"visibility\": \"public\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"My Kairos Project\",\n  \"description\": \"Progetto di esempio\",\n  \"category\": \"web\",\n  \"technologies\": [\"Node.js\", \"React\"],\n  \"visibility\": \"public\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/projects", "host": ["{{baseUrl}}"], "path": ["api", "projects"] }
           }
         },

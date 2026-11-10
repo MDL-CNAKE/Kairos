@@ -8,7 +8,7 @@ const RefreshToken = require('./backend/models/refresh-token.model');
 const Notification = require('./backend/models/notification.model');
 const Comment      = require('./backend/models/comment.model');
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskflow';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kairos';
 
 async function seed() {
   await mongoose.connect(MONGO_URI);
@@ -27,14 +27,14 @@ async function seed() {
 
   const marguerite = await User.create({
     username: 'marguerite',
-    email:    'marguerite@taskflow.dev',
+    email:    'marguerite@kairos.dev',
     password: 'MiniKiwi123!',
     role:     'admin',
   });
 
   const matteo = await User.create({
     username: 'matteo',
-    email:    'matteo@taskflow.dev',
+    email:    'matteo@kairos.dev',
     password: 'Banana456!',
     role:     'user',
   });
@@ -42,7 +42,7 @@ async function seed() {
   console.log('Utenti creati: marguerite (admin) | matteo (user)');
 
   const project = await Project.create({
-    title:        'TaskFlow - Motor Group',
+    title:        'Kairos - Motor Group',
     category:     'other',
     description:  'Coordinamento operativo delle attivita tra i reparti di produzione, qualita e supply chain.',
     technologies: ['Node.js', 'Express', 'MongoDB', 'Socket.io'],
@@ -162,8 +162,8 @@ async function seed() {
 
   console.log('\n========================================');
   console.log('  SEED COMPLETATO - Credenziali demo:');
-  console.log('  marguerite@taskflow.dev  ->  MiniKiwi123!  (admin)');
-  console.log('  matteo@taskflow.dev      ->  Banana456!    (user)');
+  console.log('  marguerite@kairos.dev  ->  MiniKiwi123!  (admin)');
+  console.log('  matteo@kairos.dev      ->  Banana456!    (user)');
   console.log('  http://localhost:3000');
   console.log('========================================\n');
 

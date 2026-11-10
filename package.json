@@ -1,5 +1,5 @@
 {
-  "name": "taskflow",
+  "name": "kairos",
   "version": "1.0.0",
   "description": "Piattaforma collaborativa di gestione progetti con task board, chat e notifiche in tempo reale",
   "main": "server.js",

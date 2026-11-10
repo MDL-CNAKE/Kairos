@@ -1,6 +1,9 @@
-# TaskFlow
+# Kairos
+
+*your flow tracker*
 
 Piattaforma collaborativa di gestione progetti con task board Kanban, chat di progetto e notifiche in tempo reale.
+Kairos, in greco, è il momento giusto: l'app aiuta il team a fare la cosa giusta al momento giusto, tra priorità, scadenze e checklist.
 Progetto sviluppato per il percorso BID Web Development dell'ITS ICT Piemonte.
 
 ## Funzionalità
@@ -32,7 +35,7 @@ Progetto sviluppato per il percorso BID Web Development dell'ITS ICT Piemonte.
 ## Struttura
 
 ```
-TaskFlow/
+Kairos/
 ├── app.js                  # Configurazione Express e registrazione route
 ├── server.js               # Entry point: MongoDB, HTTP server, Socket.io
 ├── seed.js                 # Dati di esempio
@@ -48,7 +51,7 @@ TaskFlow/
 │   ├── sockets/            # Eventi Socket.io
 │   ├── utils/              # Costanti, errori, helper
 │   └── __tests__/          # Test Jest
-└── TaskFlow.postman_collection.json
+└── Kairos.postman_collection.json
 ```
 
 ## Avvio rapido
@@ -57,7 +60,7 @@ Requisiti: Node.js 20 o superiore e un'istanza MongoDB (locale o Atlas).
 
 ```bash
 git clone <url-del-repository>
-cd TaskFlow
+cd Kairos
 npm install
 cp .env.example .env      # poi inserisci i tuoi valori
 npm run seed              # opzionale, popola il database con dati di esempio
@@ -80,15 +83,15 @@ L'app risponde su `http://localhost:3000` (frontend demo) e l'API su `http://loc
 
 | Utente | Email | Password | Ruolo |
 |---|---|---|---|
-| marguerite | marguerite@taskflow.dev | MiniKiwi123! | admin |
-| matteo | matteo@taskflow.dev | Banana456! | user |
+| marguerite | marguerite@kairos.dev | MiniKiwi123! | admin |
+| matteo | matteo@kairos.dev | Banana456! | user |
 
 Sono credenziali di sviluppo, da non usare in produzione.
 
 ## API
 
 Tutte le route protette richiedono l'header `Authorization: Bearer <accessToken>`.
-La collection completa è in `TaskFlow.postman_collection.json`.
+La collection completa è in `Kairos.postman_collection.json`.
 
 | Metodo | Endpoint | Descrizione |
 |---|---|---|

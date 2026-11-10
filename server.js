@@ -1,6 +1,6 @@
 /**
  * @module server
- * @description Entry point dell'applicazione TaskFlow.
+ * @description Entry point dell'applicazione Kairos.
  *   Avvia la connessione MongoDB, crea l'HTTP server, inizializza Socket.io
  *   e mette in ascolto sulla porta configurata.
  *
@@ -55,7 +55,7 @@ async function start() {
   setupSocketHandlers(io);
 
   server.listen(port, () => {
-    console.log(`[SERVER] TaskFlow running on port ${port}`);
+    console.log(`[SERVER] Kairos running on port ${port}`);
   });
 }
 

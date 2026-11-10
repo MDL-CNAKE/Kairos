@@ -1,6 +1,6 @@
 // Env prima di qualsiasi require
 process.env.JWT_SECRET = 'test-secret';
-process.env.MONGODB_URI = 'mongodb://localhost:27017/taskflow_test';
+process.env.MONGODB_URI = 'mongodb://localhost:27017/kairos_test';
 
 const request = require('supertest');
 const jwt = require('jsonwebtoken');

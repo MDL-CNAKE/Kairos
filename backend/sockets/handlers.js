@@ -1,6 +1,6 @@
 /**
  * @module sockets/handlers
- * @description Configurazione degli handler Socket.io per TaskFlow.
+ * @description Configurazione degli handler Socket.io per Kairos.
  *   Gestisce l'autenticazione JWT sulla connessione, le stanze per progetto
  *   e la chat real-time con persistenza su MongoDB.
  *

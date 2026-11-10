@@ -1,6 +1,6 @@
 /**
  * @module models/user
- * @description Schema Mongoose per gli utenti di TaskFlow.
+ * @description Schema Mongoose per gli utenti di Kairos.
  *   La password viene hashata automaticamente con bcrypt prima del salvataggio
  *   e non è inclusa nelle query normali (`select: false`).
  */
