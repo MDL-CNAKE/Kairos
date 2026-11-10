@@ -135,4 +135,4 @@ async function logout(rawRefreshToken) {
   }
 }
 
-module.exports = { register, login, refresh, logout, toPublicUser, signAccessToken };
+module.exports = { register, login, refresh, logout };

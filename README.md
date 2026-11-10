@@ -36,7 +36,7 @@ TaskFlow/
 ├── app.js                  # Configurazione Express e registrazione route
 ├── server.js               # Entry point: MongoDB, HTTP server, Socket.io
 ├── seed.js                 # Dati di esempio
-├── config/                 # Variabili d'ambiente, DB, strategia Passport
+├── config/                 # Variabili d'ambiente e strategia Passport
 ├── public/                 # Frontend demo
 ├── backend/
 │   ├── controllers/        # Gestione richieste e risposte
@@ -119,12 +119,14 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 
 ### Eventi Socket.io
 
+Le azioni passano tutte dalle API REST, che validano i dati e controllano i permessi; il socket serve solo a ricevere gli aggiornamenti in tempo reale.
+
 | Evento | Direzione | Descrizione |
 |---|---|---|
-| `project:join` | client → server | Entra nella stanza del progetto |
+| `project:join` | client → server | Entra nella stanza del progetto (solo membri o admin) |
 | `project:leave` | client → server | Esce dalla stanza |
-| `message:send` | client → server | Invia un messaggio in chat |
 | `message:received` | server → client | Nuovo messaggio nella stanza |
+| `notification:new` | server → client | Nuova notifica personale (stanza `user:<id>`) |
 | `task:created` · `task:updated` · `task:status_changed` · `task:deleted` | server → client | La board si aggiorna da sola |
 | `comment:created` · `comment:deleted` | server → client | Commenti del task in tempo reale |
 
@@ -134,7 +136,7 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 npm test
 ```
 
-76 test di integrazione con Jest e Supertest coprono autenticazione, progetti, task (con checklist ed etichette), commenti, chat, notifiche e area admin. I servizi sono simulati, quindi non serve un database per eseguirli.
+89 test con Jest e Supertest coprono autenticazione, progetti, task (con checklist ed etichette), commenti, chat, notifiche, area admin, permessi delle stanze Socket.io e gestione degli errori. I servizi sono simulati, quindi non serve un database per eseguirli.
 
 ### Checklist ed etichette
 

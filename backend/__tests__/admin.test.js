@@ -46,8 +46,10 @@ function makeToken(id = userId, role = 'user') {
 
 jest.mock('../models/user.model');
 jest.mock('../services/project.service');
+jest.mock('../services/token.service');
 const User = require('../models/user.model');
 const projectService = require('../services/project.service');
+const tokenService = require('../services/token.service');
 const app = require('../../app');
 
 const adminToken = () => makeToken(userId, 'admin');
@@ -85,6 +87,13 @@ describe('Admin routes', () => {
       expect(res.status).toBe(200);
       expect(user.isBlocked).toBe(true);
       expect(user.save).toHaveBeenCalled();
+      expect(tokenService.revokeAll).toHaveBeenCalledWith(otherUserId);
+    });
+
+    it('should not revoke sessions when the user cannot be blocked', async () => {
+      User.findById.mockResolvedValue({ _id: otherUserId, role: 'admin', save: jest.fn() });
+      await request(app).patch(`/api/admin/users/${otherUserId}/block`).set('Authorization', `Bearer ${adminToken()}`);
+      expect(tokenService.revokeAll).not.toHaveBeenCalled();
     });
 
     it('should not block an admin', async () => {

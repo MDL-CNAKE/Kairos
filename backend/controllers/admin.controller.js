@@ -6,6 +6,7 @@
 
 const User = require('../models/user.model');
 const projectService = require('../services/project.service');
+const tokenService = require('../services/token.service');
 const AppError = require('../utils/app-error.util');
 
 /**
@@ -48,6 +49,8 @@ async function blockUser(req, res, next) {
 
     user.isBlocked = true;
     await user.save();
+    // Chiude tutte le sessioni: i refresh token dell'utente non sono più validi
+    await tokenService.revokeAll(user._id);
     res.json({ message: 'User blocked', user });
   } catch (err) {
     next(err);

@@ -27,6 +27,11 @@ function errorHandler(err, req, res, _next) {
   if (err && err.name === 'CastError') {
     return res.status(400).json({ message: `Invalid ${err.path}` });
   }
+  // Indice unico violato (es. email registrata due volte in contemporanea)
+  if (err && err.code === 11000) {
+    const field = Object.keys(err.keyValue || {})[0] || 'value';
+    return res.status(409).json({ message: `${field} already in use` });
+  }
   if (err && err.name === 'ValidationError' && err.errors) {
     const message = Object.values(err.errors).map((e) => e.message).join(', ');
     return res.status(422).json({ message });

@@ -9,7 +9,8 @@ const passport = require('passport');
 /**
  * Middleware che autentica la richiesta tramite JWT.
  * Se il token manca o non è valido risponde con 401.
- * Se l'utente è bloccato (`isBlocked`) risponde con 403.
+ * Se l'utente non esiste più o è bloccato (`isBlocked`) risponde con 401:
+ * la strategia Passport ricarica l'utente dal database a ogni richiesta.
  * In caso di successo popola `req.user` con il documento utente.
  *
  * @type {import('express').RequestHandler}

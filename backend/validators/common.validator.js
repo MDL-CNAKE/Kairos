@@ -61,7 +61,6 @@ const notificationIdParams = z.object({ notificationId: mongoId });
 
 module.exports = {
   text,
-  requiredMessage,
   mongoId,
   projectIdParams,
   taskIdParams,
