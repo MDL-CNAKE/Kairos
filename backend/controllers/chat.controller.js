@@ -36,7 +36,7 @@ async function getHistory(req, res, next) {
 async function sendMessage(req, res, next) {
   try {
     const { projectId } = req.valid.params;
-    const message = await chatService.save(projectId, req.user._id, req.body.text);
+    const message = await chatService.save(projectId, req.user._id, req.valid.body.text);
     // Emette il messaggio in real-time a tutti i membri del progetto
     req.io?.to(projectId).emit('message:received', { message });
     res.status(201).json({ message });

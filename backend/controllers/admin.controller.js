@@ -42,7 +42,7 @@ async function listUsers(req, res, next) {
  */
 async function blockUser(req, res, next) {
   try {
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(req.valid.params.userId);
     if (!user) throw new AppError(404, 'User not found');
     if (user.role === 'admin') throw new AppError(400, 'Cannot block an admin');
 
@@ -63,7 +63,7 @@ async function blockUser(req, res, next) {
  */
 async function unblockUser(req, res, next) {
   try {
-    const user = await User.findById(req.params.userId);
+    const user = await User.findById(req.valid.params.userId);
     if (!user) throw new AppError(404, 'User not found');
 
     user.isBlocked = false;

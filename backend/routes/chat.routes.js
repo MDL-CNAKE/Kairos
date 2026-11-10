@@ -17,6 +17,7 @@ const validate = require('../middleware/validate.middleware');
 const { authenticate } = require('../middleware/auth.middleware');
 const { loadProject, requireMember } = require('../middleware/project.middleware');
 const { projectIdParams } = require('../validators/common.validator');
+const { sendMessageBody } = require('../validators/chat.validator');
 
 const router = Router({ mergeParams: true });
 
@@ -27,6 +28,6 @@ router.use(authenticate, validate({ params: projectIdParams }), loadProject, req
 router.get('/messages', controller.getHistory);
 
 // POST nuovo messaggio
-router.post('/messages', controller.sendMessage);
+router.post('/messages', validate({ body: sendMessageBody }), controller.sendMessage);
 
 module.exports = router;

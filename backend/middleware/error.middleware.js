@@ -23,6 +23,14 @@ function notFoundHandler(req, res, next) {
  * @type {import('express').ErrorRequestHandler}
  */
 function errorHandler(err, req, res, _next) {
+  // Errori Mongoose sfuggiti alla validazione Zod: non sono errori del server
+  if (err && err.name === 'CastError') {
+    return res.status(400).json({ message: `Invalid ${err.path}` });
+  }
+  if (err && err.name === 'ValidationError' && err.errors) {
+    const message = Object.values(err.errors).map((e) => e.message).join(', ');
+    return res.status(422).json({ message });
+  }
   const status = err.status || 500;
   const message = status < 500 ? err.message : 'Internal server error';
 

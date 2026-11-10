@@ -26,7 +26,8 @@ const AppError = require('../utils/app-error.util');
  */
 function validate({ body, params, query } = {}) {
   return (req, _res, next) => {
-    req.valid = {};
+    // Conserva i dati già validati da middleware precedenti (es. params a livello di router)
+    req.valid = req.valid || {};
     try {
       if (body)   req.valid.body   = body.parse(req.body);
       if (params) req.valid.params = params.parse(req.params);

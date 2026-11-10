@@ -17,7 +17,7 @@ const controller = require('../controllers/admin.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 const { requireAdmin, loadProject } = require('../middleware/project.middleware');
 const validate = require('../middleware/validate.middleware');
-const { projectIdParams } = require('../validators/common.validator');
+const { projectIdParams, userIdParams } = require('../validators/common.validator');
 
 const router = Router();
 
@@ -26,8 +26,8 @@ router.use(authenticate, requireAdmin);
 
 // Gestione utenti
 router.get('/users', controller.listUsers);
-router.patch('/users/:userId/block', controller.blockUser);
-router.patch('/users/:userId/unblock', controller.unblockUser);
+router.patch('/users/:userId/block', validate({ params: userIdParams }), controller.blockUser);
+router.patch('/users/:userId/unblock', validate({ params: userIdParams }), controller.unblockUser);
 
 // Gestione progetti
 router.get('/projects', controller.listProjects);
