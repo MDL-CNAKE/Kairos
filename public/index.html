@@ -258,6 +258,25 @@
     .chat-footer input { flex: 1; }
     .chat-footer .btn { flex-shrink: 0; }
 
+    /* ── Modale ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 100%; max-width: 440px; padding: 22px; }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+    .modal select { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 10px; font: inherit; font-size: 13px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dash-header .btn, .project-header .btn-new-task { margin-top: 10px; }
+    /* ── Notifiche ── */
+    .bell { position: relative; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); width: 32px; height: 32px; cursor: pointer; font-size: 15px; }
+    .bell:hover { border-color: #444; }
+    .bell-count { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; border-radius: 9px; min-width: 17px; height: 17px; line-height: 17px; padding: 0 4px; }
+    .notif-panel { position: fixed; top: 56px; right: 16px; width: 320px; max-width: calc(100vw - 32px); max-height: 60vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; z-index: 40; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+    .notif-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 13px; }
+    .notif-item { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; line-height: 1.5; cursor: pointer; }
+    .notif-item.unread { background: #1e1a0e; }
+    .notif-item small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .notif-empty { padding: 18px; text-align: center; color: var(--muted); font-size: 12px; }
+
     /* ── Spinner ── */
     .spinner {
       display: inline-block; width: 18px; height: 18px; border: 2px solid #222;
@@ -281,6 +300,7 @@
 <nav id="navbar" class="hidden">
   <span class="nav-logo" onclick="goToDashboard()">Task<span>Flow</span></span>
   <div class="nav-right">
+    <button class="bell" id="bell-btn" onclick="toggleNotifications()" title="Notifiche">🔔<span class="bell-count hidden" id="bell-count">0</span></button>
     <div class="nav-user">
       <div class="avatar" id="nav-avatar">?</div>
       <span id="nav-username"></span>
@@ -318,6 +338,7 @@
   <div class="dash-header">
     <div class="dash-title">I miei progetti</div>
     <div class="dash-sub" id="dash-sub">Caricamento...</div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('project')">+ Nuovo progetto</button>
   </div>
   <div class="projects-grid" id="projects-grid">
     <div class="empty-state">
@@ -331,6 +352,7 @@
   <div class="project-header">
     <button class="btn btn-ghost btn-sm" onclick="goToDashboard()">← Dashboard</button>
     <div class="project-header-title" id="proj-title"></div>
+    <button class="btn btn-primary btn-sm btn-new-task" onclick="openModal('task')">+ Nuovo task</button>
     <span class="badge" id="proj-cat-badge"></span>
   </div>
 
@@ -386,6 +408,56 @@
           onkeydown="if(event.key==='Enter')sendChatMessage()" />
         <button class="btn btn-primary btn-sm" onclick="sendChatMessage()">➤</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NOTIFICHE ═══════════ -->
+<div class="notif-panel hidden" id="notif-panel">
+  <div class="notif-head">Notifiche <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Segna tutte come lette</button></div>
+  <div id="notif-list"></div>
+</div>
+
+<!-- ═══════════ MODALE NUOVO PROGETTO ═══════════ -->
+<div class="modal-backdrop hidden" id="modal-project" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Nuovo progetto</div>
+    <div class="form-group"><label>Titolo</label><input id="np-title" maxlength="100" /></div>
+    <div class="form-group"><label>Descrizione</label><textarea id="np-desc" rows="3" maxlength="2000"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoria</label>
+        <select id="np-category">
+          <option value="web">Web</option><option value="mobile">Mobile</option><option value="backend">Backend</option>
+          <option value="data">Data</option><option value="ai">AI</option><option value="devops">DevOps</option>
+          <option value="design">Design</option><option value="other">Altro</option>
+        </select></div>
+      <div class="form-group"><label>Visibilità</label>
+        <select id="np-visibility"><option value="private">Privato</option><option value="public">Pubblico</option></select></div>
+    </div>
+    <div class="error-msg" id="np-error"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-primary btn-sm" id="np-save" onclick="createProject()">Crea progetto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODALE NUOVO TASK ═══════════ -->
+<div class="modal-backdrop hidden" id="modal-task" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-title">Nuovo task</div>
+    <div class="form-group"><label>Titolo</label><input id="nt-title" maxlength="150" /></div>
+    <div class="form-group"><label>Descrizione</label><textarea id="nt-desc" rows="3" maxlength="2000"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Priorità</label>
+        <select id="nt-priority"><option value="low">Bassa</option><option value="medium" selected>Media</option><option value="high">Alta</option></select></div>
+      <div class="form-group"><label>Scadenza</label><input id="nt-deadline" type="date" /></div>
+    </div>
+    <div class="form-group"><label>Assegnatario</label><select id="nt-assignee"><option value="">Nessuno</option></select></div>
+    <div class="error-msg" id="nt-error"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Annulla</button>
+      <button class="btn btn-primary btn-sm" id="nt-save" onclick="createTask()">Crea task</button>
     </div>
   </div>
 </div>
@@ -474,6 +546,7 @@ function logout() {
 
 /* ────────────────────────── DASHBOARD ────────────────────────── */
 async function goToDashboard() {
+  loadNotifications();
   showView('view-dashboard');
   document.getElementById('dash-sub').textContent   = 'Caricamento…';
   document.getElementById('projects-grid').innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
@@ -664,6 +737,7 @@ function initSocket() {
   });
 
   st.socket.on('task:assigned', () => {
+    loadNotifications();
     if (st.project) loadBoard();
   });
 
@@ -673,6 +747,122 @@ function initSocket() {
 }
 
 /* ────────────────────────── UTILS ────────────────────────── */
+/* ────────────────────────── MODALI ────────────────────────── */
+function openModal(type) {
+  closeModal();
+  const m = document.getElementById(`modal-${type}`);
+  m.querySelectorAll('input, textarea').forEach(el => { el.value = ''; });
+  m.querySelectorAll('.error-msg').forEach(el => { el.textContent = ''; });
+  if (type === 'task') fillAssignees();
+  m.classList.remove('hidden');
+  const first = m.querySelector('input');
+  if (first) first.focus();
+}
+function closeModal() {
+  document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.add('hidden'));
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); document.getElementById('notif-panel').classList.add('hidden'); } });
+
+function fillAssignees() {
+  const sel = document.getElementById('nt-assignee');
+  const members = (st.project && st.project.members) || [];
+  sel.innerHTML = '<option value="">Nessuno</option>' + members.map(m => {
+    const u = m.user || m.userId || {};
+    const id = u._id || u.id || (typeof u === 'string' ? u : '');
+    return id ? `<option value="${esc(id)}">${esc(u.username || id)}</option>` : '';
+  }).join('');
+}
+
+async function createProject() {
+  const title = document.getElementById('np-title').value.trim();
+  const err = document.getElementById('np-error');
+  if (!title) { err.textContent = 'Il titolo è obbligatorio'; return; }
+  const body = {
+    title,
+    category: document.getElementById('np-category').value,
+    visibility: document.getElementById('np-visibility').value,
+  };
+  const description = document.getElementById('np-desc').value.trim();
+  if (description) body.description = description;
+  const btn = document.getElementById('np-save');
+  btn.disabled = true;
+  try {
+    await api('POST', '/projects', body);
+    closeModal();
+    toast('Progetto creato');
+    goToDashboard();
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function createTask() {
+  const title = document.getElementById('nt-title').value.trim();
+  const err = document.getElementById('nt-error');
+  if (!title) { err.textContent = 'Il titolo è obbligatorio'; return; }
+  const body = { title, priority: document.getElementById('nt-priority').value };
+  const description = document.getElementById('nt-desc').value.trim();
+  const deadline = document.getElementById('nt-deadline').value;
+  const assigneeId = document.getElementById('nt-assignee').value;
+  if (description) body.description = description;
+  if (deadline) body.deadline = deadline;
+  if (assigneeId) body.assigneeId = assigneeId;
+  const btn = document.getElementById('nt-save');
+  btn.disabled = true;
+  try {
+    await api('POST', `/projects/${st.project._id}/tasks`, body);
+    closeModal();
+    toast('Task creato');
+    loadBoard();
+  } catch (e) {
+    err.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ────────────────────────── NOTIFICHE ────────────────────────── */
+const NOTIF_TEXT = {
+  task_assigned: 'Ti è stato assegnato un task',
+  task_status_changed: 'Lo stato di un task è cambiato',
+  member_joined: 'Un nuovo membro è entrato nel progetto',
+  project_reported: 'Un progetto è stato segnalato',
+};
+
+async function loadNotifications() {
+  if (!st.token) return;
+  try {
+    const data = await api('GET', '/notifications');
+    const list = data.notifications || [];
+    const unread = data.unreadCount ?? list.filter(n => !n.read).length;
+    const badge = document.getElementById('bell-count');
+    badge.textContent = unread > 99 ? '99+' : unread;
+    badge.classList.toggle('hidden', !unread);
+    document.getElementById('notif-list').innerHTML = list.length
+      ? list.map(n => `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="markRead('${esc(n._id)}')">
+          ${esc(n.message || NOTIF_TEXT[n.type] || n.type)}
+          <small>${n.createdAt ? new Date(n.createdAt).toLocaleString('it-IT') : ''}</small>
+        </div>`).join('')
+      : '<div class="notif-empty">Nessuna notifica</div>';
+  } catch (_) { /* le notifiche non devono bloccare l'interfaccia */ }
+}
+
+function toggleNotifications() {
+  const panel = document.getElementById('notif-panel');
+  panel.classList.toggle('hidden');
+  if (!panel.classList.contains('hidden')) loadNotifications();
+}
+
+async function markRead(id) {
+  try { await api('PATCH', `/notifications/${id}/read`); loadNotifications(); } catch (e) { toast(e.message); }
+}
+
+async function markAllRead() {
+  try { await api('PATCH', '/notifications/read-all'); loadNotifications(); } catch (e) { toast(e.message); }
+}
+
 function esc(s) {
   if (s == null) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
