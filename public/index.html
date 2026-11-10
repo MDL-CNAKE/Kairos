@@ -316,6 +316,7 @@
     .card-progress-bar span { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
     .card-progress-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
     .card-progress-label.complete { color: #4ade80; }
+    .card-progress-bar.complete span { background: #22c55e; }
     .card-comments { font-size: 10px; color: var(--muted); }
     .task-card { cursor: pointer; }
     /* ── Pannello dettaglio ── */
@@ -1170,7 +1171,7 @@ function taskCardExtra(t) {
   const pct = list.length ? Math.round((done / list.length) * 100) : 0;
   const checklistHtml = list.length
     ? `<div class="card-progress" title="${done} di ${list.length} completati">
-        <div class="card-progress-bar"><span style="width:${pct}%"></span></div>
+        <div class="card-progress-bar ${done === list.length ? 'complete' : ''}"><span style="width:${pct}%"></span></div>
         <span class="card-progress-label ${done === list.length ? 'complete' : ''}">☑ ${done}/${list.length}</span>
       </div>`
     : '';

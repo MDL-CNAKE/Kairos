@@ -151,8 +151,8 @@ async function catalog(filters = {}) {
  */
 async function dashboard(userId) {
   const [created, member] = await Promise.all([
-    Project.find({ owner: userId }).sort({ createdAt: -1 }),
-    Project.find({ 'members.user': userId, owner: { $ne: userId } }).sort({ createdAt: -1 }),
+    Project.find({ owner: userId }).sort({ createdAt: -1 }).populate('members.user', 'username'),
+    Project.find({ 'members.user': userId, owner: { $ne: userId } }).sort({ createdAt: -1 }).populate('members.user', 'username'),
   ]);
 
   const assignedTasks = await Task.find({ assigneeId: userId, status: { $ne: 'done' } })

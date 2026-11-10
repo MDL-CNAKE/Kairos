@@ -151,12 +151,19 @@ async function seed() {
 
   console.log('3 commenti creati');
 
-  await Message.create([
-    { projectId: project._id, userId: marguerite._id, text: 'Ciao Matteo, ho completato il modulo di autenticazione. Puoi procedere con la dashboard.' },
-    { projectId: project._id, userId: matteo._id,     text: 'Perfetto. Ho gia impostato la struttura della dashboard veicoli.' },
-    { projectId: project._id, userId: marguerite._id, text: 'Ottimo. Ricordati che il rilascio in staging è previsto per lunedì.' },
-    { projectId: project._id, userId: matteo._id,     text: 'Confermato. Apro subito il task per il deploy.' },
-  ]);
+  // Un minuto tra un messaggio e l'altro, così la chat ha un ordine cronologico certo
+  const chat = [
+    { userId: marguerite._id, text: 'Ciao Matteo, ho completato il modulo di autenticazione. Puoi procedere con la dashboard.' },
+    { userId: matteo._id,     text: 'Perfetto. Ho gia impostato la struttura della dashboard veicoli.' },
+    { userId: marguerite._id, text: 'Ottimo. Ricordati che il rilascio in staging è previsto per lunedì.' },
+    { userId: matteo._id,     text: 'Confermato. Apro subito il task per il deploy.' },
+  ];
+  const start = Date.now() - chat.length * 60 * 1000;
+  await Message.insertMany(chat.map((m, i) => ({
+    ...m,
+    projectId: project._id,
+    createdAt: new Date(start + i * 60 * 1000),
+  })));
 
   console.log('4 messaggi chat creati');
 
