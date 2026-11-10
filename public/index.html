@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     /* ── Reset & base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -277,6 +278,39 @@
     .notif-item small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
     .notif-empty { padding: 18px; text-align: center; color: var(--muted); font-size: 12px; }
 
+    /* ── Toolbar ricerca e filtri ── */
+    .board-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .search-box { position: relative; flex: 1 1 220px; max-width: 340px; }
+    .search-box input { width: 100%; padding-left: 30px; }
+    .search-box::before { content: '⌕'; position: absolute; left: 10px; top: 50%; transform: translateY(-52%); color: var(--muted); font-size: 15px; pointer-events: none; }
+    .board-toolbar select, .col-sort { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 8px; font: inherit; font-size: 12px; cursor: pointer; }
+    .board-toolbar select:focus, .col-sort:focus { outline: none; border-color: var(--accent); }
+    .filter-info { font-size: 12px; color: var(--muted); }
+    .col-sort { padding: 3px 4px; font-size: 11px; margin-left: auto; margin-right: 8px; max-width: 110px; }
+    /* ── Card task ── */
+    .task-card { position: relative; border-left: 3px solid transparent; cursor: grab; transition: border-color .15s, transform .15s, box-shadow .15s; }
+    .task-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+    .task-card.prio-high   { border-left-color: #dc2626; }
+    .task-card.prio-medium { border-left-color: #d97706; }
+    .task-card.prio-low    { border-left-color: #3a3a3a; }
+    .task-card.is-overdue  { background: #1f1010; }
+    .task-meta-spacer { flex: 1; }
+    .task-avatar { width: 24px; height: 24px; font-size: 10px; color: #000; font-weight: 800; flex-shrink: 0; }
+    .task-avatar.unassigned { background: transparent !important; color: var(--muted); border: 1px dashed #444; }
+    .task-deadline.soon    { color: var(--accent); }
+    .task-deadline.overdue { color: #f87171; font-weight: 700; }
+    /* ── Drag & drop ── */
+    .card-ghost  { opacity: .35; border: 1px dashed var(--accent) !important; background: transparent !important; }
+    .card-chosen { box-shadow: 0 0 0 1px var(--accent); }
+    .card-drag   { transform: rotate(2.5deg) scale(1.03); box-shadow: 0 14px 30px rgba(0,0,0,.6) !important; cursor: grabbing; opacity: 1 !important; }
+    #kanban-area.is-dragging .kanban-col { border-style: dashed; }
+    #kanban-area.is-dragging .col-cards { min-height: 80px; }
+    .kanban-col.drag-over { border-color: var(--accent); }
+    /* ── Errori nei form ── */
+    .form-group.has-error input, .form-group.has-error textarea, .form-group.has-error select { border-color: var(--danger) !important; }
+    .field-msg { color: var(--danger); font-size: 11px; margin-top: 4px; }
+    .form-group label .req { color: var(--danger); }
+
     /* ── Spinner ── */
     .spinner {
       display: inline-block; width: 18px; height: 18px; border: 2px solid #222;
@@ -356,41 +390,54 @@
     <span class="badge" id="proj-cat-badge"></span>
   </div>
 
+  <div class="board-toolbar">
+    <div class="search-box"><input id="filter-q" type="search" placeholder="Cerca un task…" oninput="applyFilters()" aria-label="Cerca task" /></div>
+    <select id="filter-priority" onchange="applyFilters()" aria-label="Filtra per priorità">
+      <option value="">Tutte le priorità</option><option value="high">Alta</option><option value="medium">Media</option><option value="low">Bassa</option>
+    </select>
+    <select id="filter-assignee" onchange="applyFilters()" aria-label="Filtra per assegnatario"><option value="">Tutti gli assegnatari</option></select>
+    <span class="filter-info" id="filter-info"></span>
+    <button class="btn btn-ghost btn-sm hidden" id="filter-reset" onclick="resetFilters()">Azzera filtri</button>
+  </div>
+
   <div class="project-body">
     <!-- KANBAN -->
     <div id="kanban-area">
       <!-- todo -->
-      <div class="kanban-col" id="col-todo"
-        ondragover="onDragOver(event,'todo')" ondragleave="onDragLeave(event)"
-        ondrop="onDrop(event,'todo')">
+      <div class="kanban-col" id="col-todo">
         <div class="col-header">
           <div class="col-title">
             <span class="col-dot col-dot-todo"></span> To Do
           </div>
+          <select class="col-sort" onchange="changeSort('todo', this.value)" aria-label="Ordina colonna">
+            <option value="default">Ordina</option><option value="deadline">Scadenza ↑</option><option value="priority">Priorità ↓</option><option value="title">Titolo A-Z</option><option value="recent">Più recenti</option>
+          </select>
           <span class="col-count" id="count-todo">0</span>
         </div>
         <div class="col-cards" id="cards-todo"></div>
       </div>
       <!-- in_progress -->
-      <div class="kanban-col" id="col-in_progress"
-        ondragover="onDragOver(event,'in_progress')" ondragleave="onDragLeave(event)"
-        ondrop="onDrop(event,'in_progress')">
+      <div class="kanban-col" id="col-in_progress">
         <div class="col-header">
           <div class="col-title">
             <span class="col-dot col-dot-progress"></span> In Progress
           </div>
+          <select class="col-sort" onchange="changeSort('in_progress', this.value)" aria-label="Ordina colonna">
+            <option value="default">Ordina</option><option value="deadline">Scadenza ↑</option><option value="priority">Priorità ↓</option><option value="title">Titolo A-Z</option><option value="recent">Più recenti</option>
+          </select>
           <span class="col-count" id="count-in_progress">0</span>
         </div>
         <div class="col-cards" id="cards-in_progress"></div>
       </div>
       <!-- done -->
-      <div class="kanban-col" id="col-done"
-        ondragover="onDragOver(event,'done')" ondragleave="onDragLeave(event)"
-        ondrop="onDrop(event,'done')">
+      <div class="kanban-col" id="col-done">
         <div class="col-header">
           <div class="col-title">
             <span class="col-dot col-dot-done"></span> Done
           </div>
+          <select class="col-sort" onchange="changeSort('done', this.value)" aria-label="Ordina colonna">
+            <option value="default">Ordina</option><option value="deadline">Scadenza ↑</option><option value="priority">Priorità ↓</option><option value="title">Titolo A-Z</option><option value="recent">Più recenti</option>
+          </select>
           <span class="col-count" id="count-done">0</span>
         </div>
         <div class="col-cards" id="cards-done"></div>
@@ -422,7 +469,7 @@
 <div class="modal-backdrop hidden" id="modal-project" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-title">Nuovo progetto</div>
-    <div class="form-group"><label>Titolo</label><input id="np-title" maxlength="100" /></div>
+    <div class="form-group"><label>Titolo <span class="req">*</span></label><input id="np-title" maxlength="100" /></div>
     <div class="form-group"><label>Descrizione</label><textarea id="np-desc" rows="3" maxlength="2000"></textarea></div>
     <div class="form-row">
       <div class="form-group"><label>Categoria</label>
@@ -446,7 +493,7 @@
 <div class="modal-backdrop hidden" id="modal-task" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-title">Nuovo task</div>
-    <div class="form-group"><label>Titolo</label><input id="nt-title" maxlength="150" /></div>
+    <div class="form-group"><label>Titolo <span class="req">*</span></label><input id="nt-title" maxlength="150" /></div>
     <div class="form-group"><label>Descrizione</label><textarea id="nt-desc" rows="3" maxlength="2000"></textarea></div>
     <div class="form-row">
       <div class="form-group"><label>Priorità</label>
@@ -471,7 +518,6 @@ const st = {
   project: null,
   socket:  null,
 };
-let draggedTaskId = null;
 
 /* ────────────────────────── API ────────────────────────── */
 async function api(method, path, body) {
@@ -593,79 +639,261 @@ async function openProject(project) {
 }
 
 /* ────────────────────────── KANBAN ────────────────────────── */
-async function loadBoard() {
-  ['todo','in_progress','done'].forEach(s => {
-    document.getElementById(`cards-${s}`).innerHTML = '<div class="spinner" style="margin:auto;display:block"></div>';
-  });
+const STATUSES = ['todo', 'in_progress', 'done'];
+const PRIORITY_RANK = { high: 3, medium: 2, low: 1 };
+const PRIORITY_LABEL = { low: 'Bassa', medium: 'Media', high: 'Alta' };
+
+st.board = { todo: [], in_progress: [], done: [] };
+st.filters = { q: '', priority: '', assignee: '' };
+st.sort = { todo: 'default', in_progress: 'default', done: 'default' };
+st.sortables = [];
+
+async function loadBoard({ silent = false } = {}) {
+  if (!silent) {
+    STATUSES.forEach(s => {
+      document.getElementById(`cards-${s}`).innerHTML = '<div class="spinner" style="margin:auto;display:block"></div>';
+    });
+  }
   try {
     const data = await api('GET', `/projects/${st.project._id}/tasks/board`);
     const board = data.board || data;
-    ['todo','in_progress','done'].forEach(s => renderColumn(s, board[s] || []));
+    STATUSES.forEach(s => { st.board[s] = board[s] || []; });
+    fillAssigneeFilter();
+    renderBoard();
   } catch (e) {
     toast('Errore caricamento board: ' + e.message);
   }
 }
 
-function renderColumn(status, tasks) {
-  document.getElementById(`count-${status}`).textContent = tasks.length;
-  document.getElementById(`cards-${status}`).innerHTML   = tasks.map(taskCard).join('');
+/* Aggiornamento leggero quando arrivano eventi socket da altri utenti */
+let boardRefreshTimer = null;
+function scheduleBoardRefresh() {
+  if (!st.project) return;
+  clearTimeout(boardRefreshTimer);
+  boardRefreshTimer = setTimeout(() => loadBoard({ silent: true }), 300);
 }
 
-const PRIORITY_BADGE = {
-  low:    '<span class="badge badge-low">low</span>',
-  medium: '<span class="badge badge-medium">med</span>',
-  high:   '<span class="badge badge-high">high</span>',
-};
+function userIdOf(u) {
+  if (!u) return '';
+  return typeof u === 'string' ? u : (u._id || u.id || '');
+}
+
+function projectPeople() {
+  const people = new Map();
+  ((st.project && st.project.members) || []).forEach(m => {
+    const u = m.user || m.userId;
+    const id = userIdOf(u);
+    if (id) people.set(String(id), (u && u.username) || id);
+  });
+  STATUSES.forEach(s => st.board[s].forEach(t => {
+    const id = userIdOf(t.assigneeId);
+    if (id && t.assigneeId.username) people.set(String(id), t.assigneeId.username);
+  }));
+  return people;
+}
+
+function fillAssigneeFilter() {
+  const sel = document.getElementById('filter-assignee');
+  const current = sel.value;
+  const options = [...projectPeople()].sort((a, b) => a[1].localeCompare(b[1]));
+  sel.innerHTML = '<option value="">Tutti gli assegnatari</option><option value="__none">Non assegnati</option>' +
+    options.map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('');
+  sel.value = [...sel.options].some(o => o.value === current) ? current : '';
+}
+
+function matchesFilters(t) {
+  const f = st.filters;
+  if (f.q) {
+    const q = f.q.toLowerCase();
+    const inTitle = (t.title || '').toLowerCase().includes(q);
+    const inDesc = (t.description || '').toLowerCase().includes(q);
+    if (!inTitle && !inDesc) return false;
+  }
+  if (f.priority && t.priority !== f.priority) return false;
+  if (f.assignee) {
+    const id = String(userIdOf(t.assigneeId) || '');
+    if (f.assignee === '__none' ? id : id !== f.assignee) return false;
+  }
+  return true;
+}
+
+function sortTasks(tasks, mode) {
+  const list = [...tasks];
+  const time = d => (d ? new Date(d).getTime() : Infinity);
+  switch (mode) {
+    case 'deadline':  return list.sort((a, b) => time(a.deadline) - time(b.deadline));
+    case 'priority':  return list.sort((a, b) => (PRIORITY_RANK[b.priority] || 0) - (PRIORITY_RANK[a.priority] || 0));
+    case 'title':     return list.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'it'));
+    case 'recent':    return list.sort((a, b) => time(b.createdAt) - time(a.createdAt));
+    default:          return list;
+  }
+}
+
+function renderBoard() {
+  let visible = 0, total = 0;
+  STATUSES.forEach(s => {
+    const all = st.board[s];
+    const shown = sortTasks(all.filter(matchesFilters), st.sort[s]);
+    total += all.length;
+    visible += shown.length;
+    document.getElementById(`count-${s}`).textContent =
+      shown.length === all.length ? all.length : `${shown.length}/${all.length}`;
+    document.getElementById(`cards-${s}`).innerHTML = shown.map(taskCard).join('');
+  });
+  const active = st.filters.q || st.filters.priority || st.filters.assignee;
+  const info = document.getElementById('filter-info');
+  info.textContent = active ? `${visible} di ${total} task` : '';
+  document.getElementById('filter-reset').classList.toggle('hidden', !active);
+  setupDragAndDrop();
+}
+
+function applyFilters() {
+  st.filters.q = document.getElementById('filter-q').value.trim();
+  st.filters.priority = document.getElementById('filter-priority').value;
+  st.filters.assignee = document.getElementById('filter-assignee').value;
+  renderBoard();
+}
+
+function resetFilters() {
+  document.getElementById('filter-q').value = '';
+  document.getElementById('filter-priority').value = '';
+  document.getElementById('filter-assignee').value = '';
+  applyFilters();
+}
+
+function changeSort(status, mode) {
+  st.sort[status] = mode;
+  renderBoard();
+}
+
+/* ── Card ── */
+function avatarColor(name) {
+  const palette = ['#f0a500', '#3b82f6', '#22c55e', '#a855f7', '#ef4444', '#14b8a6', '#ec4899', '#f97316'];
+  let h = 0;
+  for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return palette[h % palette.length];
+}
+
+function deadlineInfo(t) {
+  if (!t.deadline) return null;
+  const d = new Date(t.deadline);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const day = new Date(d); day.setHours(0, 0, 0, 0);
+  const diff = Math.round((day - today) / 86400000);
+  const label = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+  if (t.status === 'done') return { cls: '', label, title: 'Scadenza' };
+  if (diff < 0)   return { cls: 'overdue', label, title: `Scaduto da ${-diff} ${-diff === 1 ? 'giorno' : 'giorni'}` };
+  if (diff === 0) return { cls: 'soon', label: 'Oggi', title: 'Scade oggi' };
+  if (diff <= 2)  return { cls: 'soon', label, title: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
+  return { cls: '', label, title: 'Scadenza' };
+}
 
 function taskCard(t) {
-  const assigneeHtml = t.assigneeId
-    ? `<div class="task-assignee"><div class="avatar" style="width:20px;height:20px;font-size:9px">${(t.assigneeId.username||'?')[0].toUpperCase()}</div>${esc(t.assigneeId.username)}</div>`
+  const name = t.assigneeId && t.assigneeId.username;
+  const assigneeHtml = name
+    ? `<div class="avatar task-avatar" title="Assegnato a ${esc(name)}" style="background:${avatarColor(name)}">${esc(name[0].toUpperCase())}</div>`
+    : '<div class="avatar task-avatar unassigned" title="Non assegnato">?</div>';
+  const dl = deadlineInfo(t);
+  const deadlineHtml = dl
+    ? `<span class="task-deadline ${dl.cls}" title="${esc(dl.title)}">${dl.cls === 'overdue' ? '⚠' : '📅'} ${esc(dl.label)}</span>`
     : '';
-  const deadlineHtml = t.deadline
-    ? `<span class="task-deadline">📅 ${new Date(t.deadline).toLocaleDateString('it-IT')}</span>`
-    : '';
-  return `<div class="task-card"
-      draggable="true"
-      data-id="${t._id}"
-      ondragstart="dragStart(event,'${t._id}')"
-      ondragend="dragEnd(event)">
+  const prio = t.priority || 'medium';
+  const extra = typeof taskCardExtra === 'function' ? taskCardExtra(t) : '';
+  return `<div class="task-card prio-${prio}${dl && dl.cls === 'overdue' ? ' is-overdue' : ''}" data-id="${esc(t._id)}"
+      onclick="onTaskCardClick(event,'${esc(t._id)}')">
     <div class="task-title">${esc(t.title)}</div>
+    ${extra}
     <div class="task-meta">
-      ${PRIORITY_BADGE[t.priority] || ''}
+      <span class="badge badge-${prio}">${PRIORITY_LABEL[prio] || prio}</span>
       ${deadlineHtml}
+      <span class="task-meta-spacer"></span>
       ${assigneeHtml}
     </div>
   </div>`;
 }
 
+function onTaskCardClick(e, id) {
+  if (st.justDragged) return;
+  if (typeof openTaskDetail === 'function') openTaskDetail(id);
+}
+
+function findTask(id) {
+  for (const s of STATUSES) {
+    const t = st.board[s].find(x => String(x._id) === String(id));
+    if (t) return t;
+  }
+  return null;
+}
+
 /* ── Drag & drop ── */
-function dragStart(e, id) {
-  draggedTaskId = id;
-  setTimeout(() => e.target.classList.add('dragging'), 0);
-}
-function dragEnd(e) {
-  e.target.classList.remove('dragging');
-}
-function onDragOver(e, status) {
-  e.preventDefault();
-  document.getElementById(`col-${status}`).classList.add('drag-over');
-}
-function onDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
-async function onDrop(e, newStatus) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if (!draggedTaskId) return;
-  const taskId = draggedTaskId;
-  draggedTaskId = null;
+async function moveTask(taskId, newStatus) {
+  const task = findTask(taskId);
+  if (!task || task.status === newStatus) { renderBoard(); return; }
+  const oldStatus = task.status;
+  // Aggiornamento ottimistico: la card resta dove l'hai lasciata
+  st.board[oldStatus] = st.board[oldStatus].filter(t => t !== task);
+  task.status = newStatus;
+  st.board[newStatus].push(task);
+  renderBoard();
   try {
     await api('PATCH', `/projects/${st.project._id}/tasks/${taskId}/status`, { status: newStatus });
-    await loadBoard();
-    toast(`Task spostato → ${labelFor(newStatus)}`);
+    toast(`Task spostato in ${labelFor(newStatus)}`);
   } catch (err) {
-    toast('Errore: ' + err.message);
+    st.board[newStatus] = st.board[newStatus].filter(t => t !== task);
+    task.status = oldStatus;
+    st.board[oldStatus].push(task);
+    renderBoard();
+    toast('Spostamento non riuscito: ' + err.message);
   }
+}
+
+function setupDragAndDrop() {
+  if (window.Sortable) {
+    if (st.sortables.length) return; // le liste esistono già, Sortable osserva il DOM
+    STATUSES.forEach(s => {
+      st.sortables.push(Sortable.create(document.getElementById(`cards-${s}`), {
+        group: 'kanban',
+        sort: false,
+        animation: 180,
+        easing: 'cubic-bezier(.2,.8,.2,1)',
+        ghostClass: 'card-ghost',
+        chosenClass: 'card-chosen',
+        dragClass: 'card-drag',
+        forceFallback: true,
+        fallbackOnBody: true,
+        onStart: () => {
+          st.justDragged = true;
+          document.getElementById('kanban-area').classList.add('is-dragging');
+        },
+        onEnd: (evt) => {
+          document.getElementById('kanban-area').classList.remove('is-dragging');
+          setTimeout(() => { st.justDragged = false; }, 50);
+          const to = evt.to.id.replace('cards-', '');
+          if (evt.from !== evt.to) moveTask(evt.item.dataset.id, to);
+        },
+      }));
+    });
+    return;
+  }
+  // Ripiego: drag & drop nativo HTML5
+  document.querySelectorAll('.task-card').forEach(card => {
+    card.draggable = true;
+    card.ondragstart = (e) => { e.dataTransfer.setData('text/plain', card.dataset.id); card.classList.add('dragging'); };
+    card.ondragend = () => card.classList.remove('dragging');
+  });
+  if (st.nativeDnd) return;
+  st.nativeDnd = true;
+  STATUSES.forEach(s => {
+    const col = document.getElementById(`col-${s}`);
+    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      if (id) moveTask(id, s);
+    });
+  });
 }
 
 function labelFor(s) { return { todo:'To Do', in_progress:'In Progress', done:'Done' }[s] || s; }
@@ -741,6 +969,9 @@ function initSocket() {
     if (st.project) loadBoard();
   });
 
+  ['task:created', 'task:updated', 'task:status_changed', 'task:deleted']
+    .forEach(ev => st.socket.on(ev, scheduleBoardRefresh));
+
   st.socket.on('connect_error', () => {
     // silenzioso in demo
   });
@@ -752,7 +983,7 @@ function openModal(type) {
   closeModal();
   const m = document.getElementById(`modal-${type}`);
   m.querySelectorAll('input, textarea').forEach(el => { el.value = ''; });
-  m.querySelectorAll('.error-msg').forEach(el => { el.textContent = ''; });
+  clearFieldErrors(m);
   if (type === 'task') fillAssignees();
   m.classList.remove('hidden');
   const first = m.querySelector('input');
@@ -765,20 +996,89 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal
 
 function fillAssignees() {
   const sel = document.getElementById('nt-assignee');
-  const members = (st.project && st.project.members) || [];
-  sel.innerHTML = '<option value="">Nessuno</option>' + members.map(m => {
-    const u = m.user || m.userId || {};
-    const id = u._id || u.id || (typeof u === 'string' ? u : '');
-    return id ? `<option value="${esc(id)}">${esc(u.username || id)}</option>` : '';
-  }).join('');
+  const people = [...projectPeople()].sort((a, b) => a[1].localeCompare(b[1]));
+  sel.innerHTML = '<option value="">Nessuno</option>' +
+    people.map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('');
+}
+
+/* ────────────────────────── VALIDAZIONE FORM ────────────────────────── */
+function clearFieldErrors(root) {
+  root.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+  root.querySelectorAll('.field-msg').forEach(el => { el.textContent = ''; });
+  root.querySelectorAll('.error-msg').forEach(el => { el.textContent = ''; });
+}
+
+function fieldError(inputId, message) {
+  const input = document.getElementById(inputId);
+  const group = input.closest('.form-group');
+  group.classList.add('has-error');
+  let msg = group.querySelector('.field-msg');
+  if (!msg) {
+    msg = document.createElement('div');
+    msg.className = 'field-msg';
+    group.appendChild(msg);
+  }
+  msg.textContent = message;
+  return false;
+}
+
+/* Collega il messaggio del server al campo giusto quando possibile */
+function showServerError(e, map, fallbackId) {
+  const text = e.message || 'Errore';
+  for (const [key, inputId] of Object.entries(map)) {
+    if (text.toLowerCase().includes(key)) return fieldError(inputId, translateError(text));
+  }
+  document.getElementById(fallbackId).textContent = translateError(text);
+}
+
+function translateError(text) {
+  return text
+    .replace(/title is required|title cannot be empty/i, 'Il titolo è obbligatorio')
+    .replace(/title must be at most (\d+) characters/i, 'Il titolo può avere al massimo $1 caratteri')
+    .replace(/description must be at most (\d+) characters/i, 'La descrizione può avere al massimo $1 caratteri')
+    .replace(/Invalid priority/i, 'Priorità non valida')
+    .replace(/Invalid category/i, 'Categoria non valida')
+    .replace(/deadline must be a date YYYY-MM-DD/i, 'Data di scadenza non valida');
+}
+
+function validateProjectForm() {
+  const modal = document.getElementById('modal-project');
+  clearFieldErrors(modal);
+  let ok = true;
+  const title = document.getElementById('np-title').value.trim();
+  const desc = document.getElementById('np-desc').value.trim();
+  if (!title) ok = fieldError('np-title', 'Il titolo è obbligatorio');
+  else if (title.length < 3) ok = fieldError('np-title', 'Usa almeno 3 caratteri');
+  else if (title.length > 100) ok = fieldError('np-title', 'Massimo 100 caratteri');
+  if (desc.length > 2000) ok = fieldError('np-desc', 'Massimo 2000 caratteri');
+  if (!document.getElementById('np-category').value) ok = fieldError('np-category', 'Scegli una categoria');
+  return ok;
+}
+
+function validateTaskForm() {
+  const modal = document.getElementById('modal-task');
+  clearFieldErrors(modal);
+  let ok = true;
+  const title = document.getElementById('nt-title').value.trim();
+  const desc = document.getElementById('nt-desc').value.trim();
+  const deadline = document.getElementById('nt-deadline').value;
+  if (!title) ok = fieldError('nt-title', 'Il titolo è obbligatorio');
+  else if (title.length < 3) ok = fieldError('nt-title', 'Usa almeno 3 caratteri');
+  else if (title.length > 150) ok = fieldError('nt-title', 'Massimo 150 caratteri');
+  if (desc.length > 2000) ok = fieldError('nt-desc', 'Massimo 2000 caratteri');
+  if (!document.getElementById('nt-priority').value) ok = fieldError('nt-priority', 'Scegli una priorità');
+  if (deadline) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline)) ok = fieldError('nt-deadline', 'Data non valida');
+    else if (new Date(deadline + 'T00:00:00') < today) ok = fieldError('nt-deadline', 'La scadenza non può essere nel passato');
+  }
+  return ok;
 }
 
 async function createProject() {
-  const title = document.getElementById('np-title').value.trim();
-  const err = document.getElementById('np-error');
-  if (!title) { err.textContent = 'Il titolo è obbligatorio'; return; }
+  if (!validateProjectForm()) return;
   const body = {
-    title,
+    title: document.getElementById('np-title').value.trim(),
     category: document.getElementById('np-category').value,
     visibility: document.getElementById('np-visibility').value,
   };
@@ -792,17 +1092,18 @@ async function createProject() {
     toast('Progetto creato');
     goToDashboard();
   } catch (e) {
-    err.textContent = e.message;
+    showServerError(e, { title: 'np-title', description: 'np-desc', category: 'np-category' }, 'np-error');
   } finally {
     btn.disabled = false;
   }
 }
 
 async function createTask() {
-  const title = document.getElementById('nt-title').value.trim();
-  const err = document.getElementById('nt-error');
-  if (!title) { err.textContent = 'Il titolo è obbligatorio'; return; }
-  const body = { title, priority: document.getElementById('nt-priority').value };
+  if (!validateTaskForm()) return;
+  const body = {
+    title: document.getElementById('nt-title').value.trim(),
+    priority: document.getElementById('nt-priority').value,
+  };
   const description = document.getElementById('nt-desc').value.trim();
   const deadline = document.getElementById('nt-deadline').value;
   const assigneeId = document.getElementById('nt-assignee').value;
@@ -815,13 +1116,23 @@ async function createTask() {
     await api('POST', `/projects/${st.project._id}/tasks`, body);
     closeModal();
     toast('Task creato');
-    loadBoard();
+    loadBoard({ silent: true });
   } catch (e) {
-    err.textContent = e.message;
+    showServerError(e, { title: 'nt-title', description: 'nt-desc', priority: 'nt-priority', deadline: 'nt-deadline', assignee: 'nt-assignee' }, 'nt-error');
   } finally {
     btn.disabled = false;
   }
 }
+
+/* Validazione mentre si scrive: l'errore sparisce appena il campo è corretto */
+document.addEventListener('input', e => {
+  const group = e.target.closest && e.target.closest('.modal .form-group.has-error');
+  if (group) {
+    group.classList.remove('has-error');
+    const msg = group.querySelector('.field-msg');
+    if (msg) msg.textContent = '';
+  }
+});
 
 /* ────────────────────────── NOTIFICHE ────────────────────────── */
 const NOTIF_TEXT = {
