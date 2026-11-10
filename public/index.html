@@ -311,6 +311,69 @@
     .field-msg { color: var(--danger); font-size: 11px; margin-top: 4px; }
     .form-group label .req { color: var(--danger); }
 
+    /* ── Fase 2: extra sulle card ── */
+    .card-extra { display: flex; flex-direction: column; gap: 6px; margin: -4px 0 10px; }
+    .card-extra-row { display: flex; gap: 8px; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 20px; border: 1px solid; line-height: 16px; }
+    .tag-more { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+    .card-progress { display: flex; align-items: center; gap: 8px; }
+    .card-progress-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .card-progress-bar span { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width .3s; }
+    .card-progress-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .card-progress-label.complete { color: #4ade80; }
+    .card-comments { font-size: 10px; color: var(--muted); }
+    .task-card { cursor: pointer; }
+    /* ── Pannello dettaglio ── */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 45; display: flex; justify-content: flex-end; }
+    .drawer { width: 460px; max-width: 100vw; height: 100%; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; animation: drawerIn .22s ease-out; }
+    @keyframes drawerIn { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .drawer-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .drawer-meta { font-size: 11px; color: var(--muted); flex: 1; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 18px; }
+    .drawer-actions { display: flex; justify-content: space-between; gap: 8px; }
+    .drawer-section { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; }
+    .drawer-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 10px; display: flex; gap: 8px; align-items: baseline; }
+    .section-note { text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .form-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .drawer select { width: 100%; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 8px; font: inherit; font-size: 13px; }
+    .icon-btn { background: transparent; border: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
+    .icon-btn:hover { color: var(--text); }
+    .drawer-close { margin-left: auto; font-size: 22px; }
+    .btn-danger { color: #f87171; border-color: #4a1515; }
+    .btn-danger:hover { color: #fff; background: #7f1d1d; border-color: #7f1d1d; }
+    .muted-note { font-size: 12px; color: var(--muted); }
+    .tag-chip-lg { font-size: 12px; padding: 3px 4px 3px 10px; }
+    .tag-x { background: transparent; border: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 3px; opacity: .7; }
+    .tag-x:hover { opacity: 1; }
+    .tag-add { display: flex; gap: 8px; margin-top: 10px; }
+    .tag-add input { flex: 1; }
+    .tag-preset { cursor: pointer; font-size: 11px; padding: 2px 9px; background: transparent; }
+    .color-row { display: flex; align-items: center; gap: 6px; margin: 10px 0 8px; flex-wrap: wrap; }
+    .color-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+    .color-dot.active { border-color: #fff; box-shadow: 0 0 0 2px var(--surface); }
+    .color-custom { position: relative; cursor: pointer; font-size: 14px; }
+    .color-custom input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; padding: 0; }
+    .progress { height: 6px; background: var(--surface2); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+    .progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+    .progress span.complete { background: #22c55e; }
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .check-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 6px; border-radius: var(--radius); }
+    .check-item:hover { background: var(--surface2); }
+    .check-item label { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; flex: 1; }
+    .check-item input { width: 15px; height: 15px; accent-color: var(--accent); }
+    .check-item.done span { text-decoration: line-through; color: var(--muted); }
+    .comments { display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto; margin-bottom: 10px; }
+    .comment { display: flex; gap: 8px; }
+    .comment-body { flex: 1; background: var(--surface2); border-radius: 6px; padding: 7px 10px; }
+    .comment.mine .comment-body { background: #1e1a0e; border: 1px solid #2a2200; }
+    .comment-head { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .comment-head span { color: var(--muted); flex: 1; }
+    .comment-text { font-size: 13px; line-height: 1.5; margin-top: 3px; white-space: pre-wrap; word-break: break-word; }
+    .comment-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-top: 6px; }
+    #td-comment-input { width: 100%; resize: vertical; }
+    @media (max-width: 560px) { .form-row-3 { grid-template-columns: 1fr; } .drawer { width: 100vw; } }
+
     /* ── Spinner ── */
     .spinner {
       display: inline-block; width: 18px; height: 18px; border: 2px solid #222;
@@ -391,7 +454,7 @@
   </div>
 
   <div class="board-toolbar">
-    <div class="search-box"><input id="filter-q" type="search" placeholder="Cerca un task…" oninput="applyFilters()" aria-label="Cerca task" /></div>
+    <div class="search-box"><input id="filter-q" type="search" placeholder="Cerca per titolo, descrizione o etichetta…" oninput="applyFilters()" aria-label="Cerca task" /></div>
     <select id="filter-priority" onchange="applyFilters()" aria-label="Filtra per priorità">
       <option value="">Tutte le priorità</option><option value="high">Alta</option><option value="medium">Media</option><option value="low">Bassa</option>
     </select>
@@ -509,6 +572,66 @@
   </div>
 </div>
 
+<!-- ═══════════ DETTAGLIO TASK ═══════════ -->
+<div class="drawer-backdrop hidden" id="task-drawer" onclick="if(event.target===this)closeTaskDetail()">
+  <aside class="drawer" role="dialog" aria-label="Dettaglio task">
+    <div class="drawer-head">
+      <span class="badge" id="td-status"></span>
+      <span class="drawer-meta" id="td-meta"></span>
+      <button class="icon-btn drawer-close" onclick="closeTaskDetail()" title="Chiudi">×</button>
+    </div>
+    <div class="drawer-body">
+      <div id="td-form">
+        <div class="form-group"><label>Titolo <span class="req">*</span></label><input id="td-title" maxlength="150" /></div>
+        <div class="form-group"><label>Descrizione</label><textarea id="td-desc" rows="3" maxlength="2000" placeholder="Aggiungi dettagli…"></textarea></div>
+        <div class="form-row form-row-3">
+          <div class="form-group"><label>Priorità</label>
+            <select id="td-priority"><option value="low">Bassa</option><option value="medium">Media</option><option value="high">Alta</option></select></div>
+          <div class="form-group"><label>Scadenza</label><input id="td-deadline" type="date" /></div>
+          <div class="form-group"><label>Assegnatario</label><select id="td-assignee"></select></div>
+        </div>
+        <div class="drawer-actions">
+          <button class="btn btn-ghost btn-sm btn-danger" id="td-delete" onclick="deleteTask()">Elimina task</button>
+          <button class="btn btn-primary btn-sm" id="td-save" onclick="saveDetails()">Salva modifiche</button>
+        </div>
+      </div>
+
+      <section class="drawer-section">
+        <h4>Etichette</h4>
+        <div class="tag-row" id="td-tags"></div>
+        <div class="tag-add">
+          <input id="td-tag-name" maxlength="30" placeholder="Nuova etichetta" onkeydown="if(event.key==='Enter')addTag()" />
+          <button class="btn btn-ghost btn-sm" onclick="addTag()">Aggiungi</button>
+        </div>
+        <div class="color-row" id="td-tag-colors"></div>
+        <div class="tag-row" id="td-tag-presets"></div>
+        <div class="error-msg" id="td-tag-error"></div>
+      </section>
+
+      <section class="drawer-section">
+        <h4>Checklist <span class="section-note" id="td-check-label"></span></h4>
+        <div class="progress"><span id="td-check-bar"></span></div>
+        <ul class="checklist" id="td-checklist"></ul>
+        <div class="tag-add">
+          <input id="td-check-new" maxlength="200" placeholder="Aggiungi uno step e premi Invio" onkeydown="if(event.key==='Enter')addCheckItem()" />
+          <button class="btn btn-ghost btn-sm" onclick="addCheckItem()">Aggiungi</button>
+        </div>
+      </section>
+
+      <section class="drawer-section">
+        <h4>Commenti <span class="section-note" id="td-comments-count"></span></h4>
+        <div class="comments" id="td-comments"></div>
+        <textarea id="td-comment-input" rows="2" maxlength="1000" placeholder="Scrivi un commento… (Ctrl+Invio per inviare)"
+          onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))sendComment()"></textarea>
+        <div class="comment-actions">
+          <div class="error-msg" id="td-comment-error"></div>
+          <button class="btn btn-primary btn-sm" id="td-comment-send" onclick="sendComment()">Commenta</button>
+        </div>
+      </section>
+    </div>
+  </aside>
+</div>
+
 <!-- ═══════════ SCRIPT ═══════════ -->
 <script>
 /* ────────────────────────── STATE ────────────────────────── */
@@ -593,6 +716,7 @@ function logout() {
 /* ────────────────────────── DASHBOARD ────────────────────────── */
 async function goToDashboard() {
   loadNotifications();
+  if (st.detail && st.detail.taskId) closeTaskDetail();
   showView('view-dashboard');
   document.getElementById('dash-sub').textContent   = 'Caricamento…';
   document.getElementById('projects-grid').innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
@@ -601,7 +725,7 @@ async function goToDashboard() {
     const projects = [...(data.created || []), ...(data.member || [])];
     const grid  = document.getElementById('projects-grid');
     document.getElementById('dash-sub').textContent =
-      `${projects.length} progetto${projects.length !== 1 ? 'i' : ''}`;
+      `${projects.length} ${projects.length === 1 ? 'progetto' : 'progetti'}`;
     if (!projects.length) {
       grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📂</div><div>Nessun progetto ancora.</div></div>';
       return;
@@ -707,7 +831,8 @@ function matchesFilters(t) {
     const q = f.q.toLowerCase();
     const inTitle = (t.title || '').toLowerCase().includes(q);
     const inDesc = (t.description || '').toLowerCase().includes(q);
-    if (!inTitle && !inDesc) return false;
+    const inTags = (t.tags || []).some(tg => tg.name.toLowerCase().includes(q));
+    if (!inTitle && !inDesc && !inTags) return false;
   }
   if (f.priority && t.priority !== f.priority) return false;
   if (f.assignee) {
@@ -970,7 +1095,8 @@ function initSocket() {
   });
 
   ['task:created', 'task:updated', 'task:status_changed', 'task:deleted']
-    .forEach(ev => st.socket.on(ev, scheduleBoardRefresh));
+    .forEach(ev => st.socket.on(ev, () => { scheduleBoardRefresh(); if (st.detail.taskId) setTimeout(() => { if (currentTask()) renderDetail(); }, 700); }));
+  ['comment:created', 'comment:deleted'].forEach(ev => st.socket.on(ev, payload => onCommentEvent(ev, payload)));
 
   st.socket.on('connect_error', () => {
     // silenzioso in demo
@@ -999,6 +1125,333 @@ function fillAssignees() {
   const people = [...projectPeople()].sort((a, b) => a[1].localeCompare(b[1]));
   sel.innerHTML = '<option value="">Nessuno</option>' +
     people.map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('');
+}
+
+/* ────────────────────────── DETTAGLIO TASK (Fase 2) ────────────────────────── */
+const TAG_PRESETS = [
+  { name: 'Bug', color: '#ef4444' },
+  { name: 'Feature', color: '#22c55e' },
+  { name: 'Design', color: '#a855f7' },
+  { name: 'Docs', color: '#3b82f6' },
+  { name: 'Urgente', color: '#f97316' },
+];
+const TAG_COLORS = ['#ef4444', '#f97316', '#f0a500', '#22c55e', '#14b8a6', '#3b82f6', '#a855f7', '#ec4899', '#6b7280'];
+
+st.detail = { taskId: null, comments: [], tagColor: TAG_COLORS[5], confirmDelete: false };
+
+/* Extra mostrati sulla card: tag, avanzamento checklist, commenti */
+function taskCardExtra(t) {
+  const tags = t.tags || [];
+  const shown = tags.slice(0, 3).map(tg =>
+    `<span class="tag-chip" style="${tagStyle(tg.color)}">${esc(tg.name)}</span>`).join('');
+  const more = tags.length > 3 ? `<span class="tag-chip tag-more">+${tags.length - 3}</span>` : '';
+  const list = t.checklist || [];
+  const done = list.filter(i => i.done).length;
+  const pct = list.length ? Math.round((done / list.length) * 100) : 0;
+  const checklistHtml = list.length
+    ? `<div class="card-progress" title="${done} di ${list.length} completati">
+        <div class="card-progress-bar"><span style="width:${pct}%"></span></div>
+        <span class="card-progress-label ${done === list.length ? 'complete' : ''}">☑ ${done}/${list.length}</span>
+      </div>`
+    : '';
+  const comments = t.commentsCount ? `<span class="card-comments" title="${t.commentsCount} commenti">💬 ${t.commentsCount}</span>` : '';
+  if (!tags.length && !checklistHtml && !comments) return '';
+  return `<div class="card-extra">${tags.length ? `<div class="tag-row">${shown}${more}</div>` : ''}${checklistHtml}${comments ? `<div class="card-extra-row">${comments}</div>` : ''}</div>`;
+}
+
+function tagStyle(color) {
+  const c = /^#[0-9a-fA-F]{6}$/.test(color || '') ? color : '#6b7280';
+  return `background:${c}26;color:${c};border-color:${c}66`;
+}
+
+/* ── Apertura e chiusura ── */
+async function openTaskDetail(id) {
+  const t = findTask(id);
+  if (!t) return;
+  st.detail.taskId = String(id);
+  st.detail.confirmDelete = false;
+  document.getElementById('task-drawer').classList.remove('hidden');
+  document.body.classList.add('drawer-open');
+  renderDetail();
+  loadComments();
+}
+
+function closeTaskDetail() {
+  st.detail.taskId = null;
+  document.getElementById('task-drawer').classList.add('hidden');
+  document.body.classList.remove('drawer-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && st.detail.taskId) closeTaskDetail(); });
+
+function currentTask() { return st.detail.taskId ? findTask(st.detail.taskId) : null; }
+
+/* ── Rendering ── */
+function renderDetail() {
+  const t = currentTask();
+  if (!t) { closeTaskDetail(); return; }
+  document.getElementById('td-status').textContent = labelFor(t.status);
+  document.getElementById('td-status').className = `badge badge-${t.status === 'done' ? 'done' : t.status === 'in_progress' ? 'progress' : 'todo'}`;
+  document.getElementById('td-title').value = t.title || '';
+  document.getElementById('td-desc').value = t.description || '';
+  document.getElementById('td-priority').value = t.priority || 'medium';
+  document.getElementById('td-deadline').value = t.deadline ? new Date(t.deadline).toISOString().slice(0, 10) : '';
+  const sel = document.getElementById('td-assignee');
+  const people = [...projectPeople()].sort((a, b) => a[1].localeCompare(b[1]));
+  sel.innerHTML = '<option value="">Nessuno</option>' + people.map(([pid, name]) => `<option value="${esc(pid)}">${esc(name)}</option>`).join('');
+  sel.value = String(userIdOf(t.assigneeId) || '');
+  const meta = [];
+  if (t.createdBy && t.createdBy.username) meta.push(`Creato da ${esc(t.createdBy.username)}`);
+  if (t.createdAt) meta.push(new Date(t.createdAt).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' }));
+  document.getElementById('td-meta').innerHTML = meta.join(' · ');
+  clearFieldErrors(document.getElementById('td-form'));
+  document.getElementById('td-delete').textContent = 'Elimina task';
+  st.detail.confirmDelete = false;
+  renderTags();
+  renderChecklist();
+}
+
+function renderTags() {
+  const t = currentTask();
+  const tags = t.tags || [];
+  document.getElementById('td-tags').innerHTML = tags.length
+    ? tags.map((tg, i) => `<span class="tag-chip tag-chip-lg" style="${tagStyle(tg.color)}">${esc(tg.name)}<button class="tag-x" title="Rimuovi" onclick="removeTag(${i})">×</button></span>`).join('')
+    : '<span class="muted-note">Nessuna etichetta</span>';
+  const names = tags.map(x => x.name.toLowerCase());
+  document.getElementById('td-tag-presets').innerHTML = TAG_PRESETS
+    .filter(p => !names.includes(p.name.toLowerCase()))
+    .map(p => `<button class="tag-chip tag-preset" style="${tagStyle(p.color)}" onclick="addTag('${p.name}','${p.color}')">+ ${p.name}</button>`).join('');
+  document.getElementById('td-tag-colors').innerHTML = TAG_COLORS.map(c =>
+    `<button class="color-dot ${c === st.detail.tagColor ? 'active' : ''}" style="background:${c}" title="${c}" onclick="pickTagColor('${c}')"></button>`).join('') +
+    `<label class="color-custom" title="Colore personalizzato"><input type="color" value="${st.detail.tagColor}" oninput="pickTagColor(this.value)" />🎨</label>`;
+}
+
+function renderChecklist() {
+  const t = currentTask();
+  const list = t.checklist || [];
+  const done = list.filter(i => i.done).length;
+  const pct = list.length ? Math.round((done / list.length) * 100) : 0;
+  document.getElementById('td-check-label').textContent = list.length ? `${done}/${list.length} completati` : 'Nessuno step';
+  document.getElementById('td-check-bar').style.width = pct + '%';
+  document.getElementById('td-check-bar').classList.toggle('complete', list.length > 0 && done === list.length);
+  document.getElementById('td-checklist').innerHTML = list.map((item, i) => `
+    <li class="check-item ${item.done ? 'done' : ''}">
+      <label><input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheckItem(${i})" /><span>${esc(item.text)}</span></label>
+      <button class="icon-btn" title="Elimina step" onclick="removeCheckItem(${i})">×</button>
+    </li>`).join('');
+}
+
+/* ── Salvataggio ── */
+async function saveTaskPatch(patch, { silent = false } = {}) {
+  const t = currentTask();
+  if (!t) return false;
+  try {
+    const data = await api('PUT', `/projects/${st.project._id}/tasks/${t._id}`, patch);
+    const updated = data.task || {};
+    const keep = { commentsCount: t.commentsCount, createdBy: t.createdBy };
+    Object.assign(t, updated, keep);
+    renderBoard();
+    if (!silent) toast('Task aggiornato');
+    return true;
+  } catch (e) {
+    toast('Salvataggio non riuscito: ' + translateError(e.message));
+    return false;
+  }
+}
+
+function checklistPayload(list) {
+  return list.map(i => (i._id ? { _id: i._id, text: i.text, done: !!i.done } : { text: i.text, done: !!i.done }));
+}
+
+async function saveDetails() {
+  const form = document.getElementById('td-form');
+  clearFieldErrors(form);
+  const title = document.getElementById('td-title').value.trim();
+  const description = document.getElementById('td-desc').value.trim();
+  const deadline = document.getElementById('td-deadline').value;
+  let ok = true;
+  if (!title) ok = fieldError('td-title', 'Il titolo è obbligatorio');
+  else if (title.length < 3) ok = fieldError('td-title', 'Usa almeno 3 caratteri');
+  else if (title.length > 150) ok = fieldError('td-title', 'Massimo 150 caratteri');
+  if (description.length > 2000) ok = fieldError('td-desc', 'Massimo 2000 caratteri');
+  if (!ok) return;
+  const patch = {
+    title,
+    description,
+    priority: document.getElementById('td-priority').value,
+    assigneeId: document.getElementById('td-assignee').value || null,
+  };
+  if (deadline) patch.deadline = deadline;
+  const btn = document.getElementById('td-save');
+  btn.disabled = true;
+  if (await saveTaskPatch(patch)) renderDetail();
+  btn.disabled = false;
+}
+
+async function deleteTask() {
+  const btn = document.getElementById('td-delete');
+  if (!st.detail.confirmDelete) {
+    st.detail.confirmDelete = true;
+    btn.textContent = 'Conferma eliminazione';
+    setTimeout(() => {
+      if (st.detail.confirmDelete) { st.detail.confirmDelete = false; btn.textContent = 'Elimina task'; }
+    }, 4000);
+    return;
+  }
+  const t = currentTask();
+  try {
+    await api('DELETE', `/projects/${st.project._id}/tasks/${t._id}`);
+    st.board[t.status] = st.board[t.status].filter(x => x !== t);
+    closeTaskDetail();
+    renderBoard();
+    toast('Task eliminato');
+  } catch (e) {
+    toast('Eliminazione non riuscita: ' + e.message);
+  }
+}
+
+/* ── Tag ── */
+function pickTagColor(c) {
+  st.detail.tagColor = c;
+  renderTags();
+}
+
+async function addTag(name, color) {
+  const t = currentTask();
+  const input = document.getElementById('td-tag-name');
+  const err = document.getElementById('td-tag-error');
+  err.textContent = '';
+  const tagName = (name || input.value).trim();
+  const tags = t.tags || [];
+  if (!tagName) { err.textContent = 'Scrivi il nome dell\'etichetta'; return; }
+  if (tagName.length > 30) { err.textContent = 'Massimo 30 caratteri'; return; }
+  if (tags.some(x => x.name.toLowerCase() === tagName.toLowerCase())) { err.textContent = 'Etichetta già presente'; return; }
+  if (tags.length >= 10) { err.textContent = 'Massimo 10 etichette per task'; return; }
+  const next = [...tags.map(x => ({ name: x.name, color: x.color })), { name: tagName, color: color || st.detail.tagColor }];
+  if (await saveTaskPatch({ tags: next }, { silent: true })) {
+    input.value = '';
+    renderTags();
+  }
+}
+
+async function removeTag(i) {
+  const t = currentTask();
+  const next = (t.tags || []).filter((_, k) => k !== i).map(x => ({ name: x.name, color: x.color }));
+  if (await saveTaskPatch({ tags: next }, { silent: true })) renderTags();
+}
+
+/* ── Checklist ── */
+async function addCheckItem() {
+  const input = document.getElementById('td-check-new');
+  const text = input.value.trim();
+  const t = currentTask();
+  const list = t.checklist || [];
+  if (!text) return;
+  if (text.length > 200) { toast('Uno step può avere al massimo 200 caratteri'); return; }
+  if (list.length >= 50) { toast('Massimo 50 step per task'); return; }
+  input.value = '';
+  if (await saveTaskPatch({ checklist: checklistPayload([...list, { text, done: false }]) }, { silent: true })) renderChecklist();
+  input.focus();
+}
+
+async function toggleCheckItem(i) {
+  const t = currentTask();
+  const list = (t.checklist || []).map((x, k) => (k === i ? { ...x, done: !x.done } : x));
+  t.checklist = list; // aggiornamento ottimistico
+  renderChecklist();
+  renderBoard();
+  if (!(await saveTaskPatch({ checklist: checklistPayload(list) }, { silent: true }))) loadBoard({ silent: true });
+  else renderChecklist();
+}
+
+async function removeCheckItem(i) {
+  const t = currentTask();
+  const list = (t.checklist || []).filter((_, k) => k !== i);
+  if (await saveTaskPatch({ checklist: checklistPayload(list) }, { silent: true })) renderChecklist();
+}
+
+/* ── Commenti ── */
+async function loadComments() {
+  const t = currentTask();
+  const box = document.getElementById('td-comments');
+  box.innerHTML = '<div class="spinner" style="margin:12px auto;display:block"></div>';
+  try {
+    const data = await api('GET', `/projects/${st.project._id}/tasks/${t._id}/comments`);
+    st.detail.comments = data.comments || [];
+    renderComments();
+  } catch (e) {
+    box.innerHTML = `<div class="muted-note">Commenti non disponibili: ${esc(e.message)}</div>`;
+  }
+}
+
+function renderComments() {
+  const box = document.getElementById('td-comments');
+  const list = st.detail.comments;
+  document.getElementById('td-comments-count').textContent = list.length ? `(${list.length})` : '';
+  if (!list.length) { box.innerHTML = '<div class="muted-note">Ancora nessun commento. Scrivi il primo!</div>'; return; }
+  box.innerHTML = list.map(c => {
+    const author = c.userId || {};
+    const name = author.username || 'Utente';
+    const mine = String(author._id || author) === String(st.user && st.user._id);
+    const canDelete = mine || (st.user && st.user.role === 'admin');
+    const when = c.createdAt ? new Date(c.createdAt).toLocaleString('it-IT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    return `<div class="comment ${mine ? 'mine' : ''}">
+      <div class="avatar task-avatar" style="background:${avatarColor(name)}">${esc(name[0].toUpperCase())}</div>
+      <div class="comment-body">
+        <div class="comment-head"><strong>${esc(name)}</strong><span>${when}</span>
+          ${canDelete ? `<button class="icon-btn" title="Elimina commento" onclick="deleteComment('${esc(c._id)}')">×</button>` : ''}</div>
+        <div class="comment-text">${esc(c.text)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendComment() {
+  const input = document.getElementById('td-comment-input');
+  const err = document.getElementById('td-comment-error');
+  const text = input.value.trim();
+  err.textContent = '';
+  if (!text) { err.textContent = 'Il commento è vuoto'; return; }
+  if (text.length > 1000) { err.textContent = 'Massimo 1000 caratteri'; return; }
+  const t = currentTask();
+  const btn = document.getElementById('td-comment-send');
+  btn.disabled = true;
+  try {
+    const data = await api('POST', `/projects/${st.project._id}/tasks/${t._id}/comments`, { text });
+    if (data.comment && !st.detail.comments.some(c => c._id === data.comment._id)) st.detail.comments.push(data.comment);
+    t.commentsCount = st.detail.comments.length;
+    input.value = '';
+    renderComments();
+    renderBoard();
+  } catch (e) {
+    err.textContent = translateError(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteComment(id) {
+  const t = currentTask();
+  try {
+    await api('DELETE', `/projects/${st.project._id}/tasks/${t._id}/comments/${id}`);
+    st.detail.comments = st.detail.comments.filter(c => c._id !== id);
+    t.commentsCount = st.detail.comments.length;
+    renderComments();
+    renderBoard();
+  } catch (e) {
+    toast('Impossibile eliminare: ' + e.message);
+  }
+}
+
+/* Commenti in tempo reale da altri membri */
+function onCommentEvent(ev, payload) {
+  scheduleBoardRefresh();
+  if (!payload || String(payload.taskId) !== st.detail.taskId) return;
+  if (ev === 'comment:created' && payload.comment && !st.detail.comments.some(c => c._id === payload.comment._id)) {
+    st.detail.comments.push(payload.comment);
+  }
+  if (ev === 'comment:deleted') st.detail.comments = st.detail.comments.filter(c => c._id !== payload.commentId);
+  renderComments();
 }
 
 /* ────────────────────────── VALIDAZIONE FORM ────────────────────────── */
@@ -1140,6 +1593,7 @@ const NOTIF_TEXT = {
   task_status_changed: 'Lo stato di un task è cambiato',
   member_joined: 'Un nuovo membro è entrato nel progetto',
   project_reported: 'Un progetto è stato segnalato',
+  task_commented: 'Nuovo commento su un tuo task',
 };
 
 async function loadNotifications() {
