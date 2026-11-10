@@ -8,7 +8,10 @@ Progetto sviluppato per il percorso BID Web Development dell'ITS ICT Piemonte.
 - **Autenticazione** con JWT, access token a breve durata e refresh token salvati su MongoDB
 - **Progetti** pubblici o privati, con categoria, membri, archiviazione e segnalazione
 - **Catalogo** dei progetti pubblici filtrabile per categoria e **dashboard** personale
-- **Task board** a tre colonne (`todo`, `in_progress`, `done`) con priorità e assegnatario
+- **Task board** a tre colonne (`todo`, `in_progress`, `done`) con drag & drop animato (SortableJS)
+- **Ricerca e filtri** in tempo reale per testo, etichetta, priorità e assegnatario, con ordinamento per colonna
+- **Card** con avatar dell'assegnatario, badge di priorità, scadenza evidenziata se vicina o scaduta
+- **Dettaglio task** con checklist e barra di progresso, etichette colorate e thread di commenti
 - **Chat di progetto** in tempo reale con Socket.io, con storico consultabile via API
 - **Notifiche** per assegnazione task, cambio stato, nuovi membri e segnalazioni
 - **Area admin** per bloccare utenti e ripristinare progetti nascosti
@@ -22,9 +25,9 @@ Progetto sviluppato per il percorso BID Web Development dell'ITS ICT Piemonte.
 | Server | Express 5, Socket.io 4 |
 | Database | MongoDB, Mongoose 9 |
 | Sicurezza | Passport JWT, bcryptjs, refresh token |
-| Validazione | Zod 4 |
+| Validazione | Zod 4 (backend) e controlli campo per campo nei form (frontend) |
 | Test | Jest, Supertest |
-| Frontend demo | HTML, CSS, JavaScript (`public/index.html`) |
+| Frontend | HTML, CSS, JavaScript vanilla, SortableJS (`public/index.html`) |
 
 ## Struttura
 
@@ -103,7 +106,10 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 | POST | `/api/projects/:projectId/report` | Segnala un progetto |
 | GET | `/api/projects/:projectId/tasks/board` | Task raggruppati per colonna |
 | GET, POST | `/api/projects/:projectId/tasks` | Elenco e creazione task |
-| GET, PUT, PATCH, DELETE | `/api/projects/:projectId/tasks/:taskId` | Gestione singolo task |
+| GET, PUT, DELETE | `/api/projects/:projectId/tasks/:taskId` | Dettaglio, modifica (anche `checklist` e `tags`), eliminazione |
+| PATCH | `/api/projects/:projectId/tasks/:taskId/status` | Cambio colonna |
+| GET, POST | `/api/projects/:projectId/tasks/:taskId/comments` | Commenti del task |
+| DELETE | `/api/projects/:projectId/tasks/:taskId/comments/:commentId` | Elimina un commento (autore o admin) |
 | GET, POST | `/api/projects/:projectId/chat/messages` | Storico e invio messaggi |
 | GET | `/api/notifications` | Notifiche dell'utente |
 | PATCH | `/api/notifications/read-all` · `/:notificationId/read` | Segna come lette |
@@ -119,6 +125,8 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 | `project:leave` | client → server | Esce dalla stanza |
 | `message:send` | client → server | Invia un messaggio in chat |
 | `message:received` | server → client | Nuovo messaggio nella stanza |
+| `task:created` · `task:updated` · `task:status_changed` · `task:deleted` | server → client | La board si aggiorna da sola |
+| `comment:created` · `comment:deleted` | server → client | Commenti del task in tempo reale |
 
 ## Test
 
@@ -126,7 +134,20 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 npm test
 ```
 
-58 test di integrazione con Jest e Supertest coprono autenticazione, progetti, task, chat, notifiche e area admin. I servizi sono simulati, quindi non serve un database per eseguirli.
+76 test di integrazione con Jest e Supertest coprono autenticazione, progetti, task (con checklist ed etichette), commenti, chat, notifiche e area admin. I servizi sono simulati, quindi non serve un database per eseguirli.
+
+### Checklist ed etichette
+
+Si modificano con `PUT /api/projects/:projectId/tasks/:taskId` inviando l'elenco completo:
+
+```json
+{
+  "checklist": [{ "text": "Schema", "done": true }, { "text": "Route", "done": false }],
+  "tags": [{ "name": "Bug", "color": "#ef4444" }]
+}
+```
+
+Limiti: 50 voci di checklist da 200 caratteri, 10 etichette da 30 caratteri con colore esadecimale e nomi unici, commenti da 1000 caratteri.
 
 ## Roadmap
 

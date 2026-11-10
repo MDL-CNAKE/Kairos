@@ -6,6 +6,7 @@ const Task        = require('./backend/models/task.model');
 const Message     = require('./backend/models/message.model');
 const RefreshToken = require('./backend/models/refresh-token.model');
 const Notification = require('./backend/models/notification.model');
+const Comment      = require('./backend/models/comment.model');
 
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskflow';
 
@@ -20,6 +21,7 @@ async function seed() {
     Message.deleteMany({}),
     RefreshToken.deleteMany({}),
     Notification.deleteMany({}),
+    Comment.deleteMany({}),
   ]);
   console.log('Database pulito');
 
@@ -55,8 +57,9 @@ async function seed() {
   console.log('Progetto creato:', project.title);
 
   const deadline = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000);
+  const yesterday = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
 
-  await Task.create([
+  const tasks = await Task.create([
     {
       title:       'Configurare modulo di autenticazione',
       description: 'Login, gestione ruoli e sessioni per gli utenti della piattaforma.',
@@ -65,6 +68,12 @@ async function seed() {
       projectId:   project._id,
       createdBy:   marguerite._id,
       assigneeId:  marguerite._id,
+      tags:        [{ name: 'Feature', color: '#22c55e' }],
+      checklist:   [
+        { text: 'Registrazione e login', done: true },
+        { text: 'Refresh token', done: true },
+        { text: 'Ruoli utente e admin', done: true },
+      ],
     },
     {
       title:       'Dashboard monitoraggio veicoli',
@@ -81,6 +90,13 @@ async function seed() {
       status:      'in_progress',
       priority:    'medium',
       deadline,
+      tags:        [{ name: 'Feature', color: '#22c55e' }, { name: 'Design', color: '#a855f7' }],
+      checklist:   [
+        { text: 'Stanze Socket.io per progetto', done: true },
+        { text: 'Evento di cambio stato', done: true },
+        { text: 'Campanella nel frontend', done: false },
+        { text: 'Test end-to-end', done: false },
+      ],
       projectId:   project._id,
       createdBy:   marguerite._id,
       assigneeId:  marguerite._id,
@@ -90,7 +106,13 @@ async function seed() {
       description: 'Suite con Supertest: copertura endpoint autenticazione e gestione task.',
       status:      'in_progress',
       priority:    'medium',
-      deadline,
+      deadline:    yesterday,
+      tags:        [{ name: 'Bug', color: '#ef4444' }],
+      checklist:   [
+        { text: 'Auth', done: true },
+        { text: 'Progetti', done: true },
+        { text: 'Task e commenti', done: false },
+      ],
       projectId:   project._id,
       createdBy:   marguerite._id,
       assigneeId:  matteo._id,
@@ -98,6 +120,7 @@ async function seed() {
     {
       title:       'Documentazione tecnica API',
       description: 'Documentare sempre e comunque.',
+      tags:        [{ name: 'Docs', color: '#3b82f6' }],
       status:      'todo',
       priority:    'low',
       projectId:   project._id,
@@ -117,6 +140,16 @@ async function seed() {
   ]);
 
   console.log('6 task creati (2 done, 2 in progress, 2 todo)');
+
+  const notifiche = tasks.find(t => t.title.startsWith('Notifiche'));
+  const testApi   = tasks.find(t => t.title.startsWith('Test di integrazione'));
+  await Comment.create([
+    { taskId: notifiche._id, projectId: project._id, userId: matteo._id,     text: 'La campanella la mettiamo in alto a destra?' },
+    { taskId: notifiche._id, projectId: project._id, userId: marguerite._id, text: 'Si, con il contatore delle non lette.' },
+    { taskId: testApi._id,   projectId: project._id, userId: marguerite._id, text: 'Mancano i test sui commenti, la scadenza era ieri.' },
+  ]);
+
+  console.log('3 commenti creati');
 
   await Message.create([
     { projectId: project._id, userId: marguerite._id, text: 'Ciao Matteo, ho completato il modulo di autenticazione. Puoi procedere con la dashboard.' },
