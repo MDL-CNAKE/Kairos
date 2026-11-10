@@ -126,7 +126,7 @@ La collection completa è in `TaskFlow.postman_collection.json`.
 npm test
 ```
 
-I test di integrazione coprono le route di autenticazione e di progetto.
+58 test di integrazione con Jest e Supertest coprono autenticazione, progetti, task, chat, notifiche e area admin. I servizi sono simulati, quindi non serve un database per eseguirli.
 
 ## Roadmap
 
