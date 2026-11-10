@@ -40,6 +40,7 @@ const NOTIFICATION_TYPES = [
   'task_status_changed',
   'member_joined',
   'project_reported',
+  'task_commented',
 ];
 
 module.exports = {

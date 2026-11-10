@@ -64,6 +64,35 @@ const taskSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    // Sotto-task spuntabili mostrati come checklist con barra di progresso
+    checklist: [
+      {
+        text: {
+          type: String,
+          required: [true, 'checklist text is required'],
+          trim: true,
+          maxlength: [200, 'checklist item must be at most 200 characters'],
+        },
+        done: { type: Boolean, default: false },
+      },
+    ],
+    // Etichette colorate libere (es. Bug, Feature, Design)
+    tags: [
+      {
+        _id: false,
+        name: {
+          type: String,
+          required: [true, 'tag name is required'],
+          trim: true,
+          maxlength: [30, 'tag name must be at most 30 characters'],
+        },
+        color: {
+          type: String,
+          match: [/^#[0-9a-fA-F]{6}$/, 'tag color must be a hex color'],
+          default: '#6b7280',
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

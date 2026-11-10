@@ -118,6 +118,58 @@ describe('Task routes', () => {
     });
   });
 
+  describe('PUT /tasks/:taskId with checklist and tags', () => {
+    const put = (body) => request(app)
+      .put(`${base}/${taskId}`)
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send(body);
+
+    beforeEach(() => {
+      taskService.getOne.mockResolvedValue(mockTask);
+      taskService.update.mockImplementation(async (task, data) => ({ task: { ...task, ...data }, previousAssignee: undefined }));
+    });
+
+    it('should save a checklist', async () => {
+      const checklist = [{ text: 'Schema', done: true }, { text: 'Route', done: false }];
+      const res = await put({ checklist });
+      expect(res.status).toBe(200);
+      expect(taskService.update).toHaveBeenCalledWith(mockTask, { checklist });
+      expect(res.body.task.checklist).toHaveLength(2);
+    });
+
+    it('should trim checklist items and reject empty ones', async () => {
+      const res = await put({ checklist: [{ text: '   ' }] });
+      expect(res.status).toBe(422);
+    });
+
+    it('should reject more than 50 checklist items', async () => {
+      const res = await put({ checklist: Array.from({ length: 51 }, (_, i) => ({ text: `step ${i}` })) });
+      expect(res.status).toBe(422);
+    });
+
+    it('should save colored tags', async () => {
+      const tags = [{ name: 'Bug', color: '#ef4444' }, { name: 'Design', color: '#a855f7' }];
+      const res = await put({ tags });
+      expect(res.status).toBe(200);
+      expect(res.body.task.tags).toEqual(tags);
+    });
+
+    it('should reject an invalid tag color', async () => {
+      const res = await put({ tags: [{ name: 'Bug', color: 'red' }] });
+      expect(res.status).toBe(422);
+    });
+
+    it('should reject duplicate tag names', async () => {
+      const res = await put({ tags: [{ name: 'Bug', color: '#ef4444' }, { name: 'bug', color: '#000000' }] });
+      expect(res.status).toBe(422);
+    });
+
+    it('should reject more than 10 tags', async () => {
+      const res = await put({ tags: Array.from({ length: 11 }, (_, i) => ({ name: `t${i}`, color: '#123456' })) });
+      expect(res.status).toBe(422);
+    });
+  });
+
   describe('PATCH /tasks/:taskId/status', () => {
     it('should change the status', async () => {
       taskService.getOne.mockResolvedValue(mockTask);

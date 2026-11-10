@@ -17,6 +17,8 @@
 
 const { Router } = require('express');
 const controller = require('../controllers/task.controller');
+const commentController = require('../controllers/comment.controller');
+const { commentBody, commentIdParams } = require('../validators/comment.validator');
 const validate = require('../middleware/validate.middleware');
 const { authenticate } = require('../middleware/auth.middleware');
 const { loadProject, requireMember } = require('../middleware/project.middleware');
@@ -59,6 +61,23 @@ router.delete(
   '/:taskId',
   validate({ params: taskIdParams }),
   controller.remove
+);
+
+// Commenti del task
+router.get(
+  '/:taskId/comments',
+  validate({ params: taskIdParams }),
+  commentController.list
+);
+router.post(
+  '/:taskId/comments',
+  validate({ params: taskIdParams, body: commentBody }),
+  commentController.create
+);
+router.delete(
+  '/:taskId/comments/:commentId',
+  validate({ params: commentIdParams }),
+  commentController.remove
 );
 
 module.exports = router;

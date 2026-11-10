@@ -6,6 +6,7 @@
 
 const Task = require('../models/task.model');
 const AppError = require('../utils/app-error.util');
+const commentService = require('./comment.service');
 
 /**
  * @typedef {Object} TaskUpdateResult
@@ -107,6 +108,7 @@ async function changeStatus(task, newStatus) {
 async function remove(taskId, projectId) {
   const task = await Task.findOneAndDelete({ _id: taskId, projectId });
   if (!task) throw new AppError(404, 'Task not found');
+  await commentService.removeByTask(taskId);
   return task;
 }
 
@@ -121,6 +123,10 @@ async function board(projectId) {
     .populate('assigneeId', 'username email')
     .populate('createdBy', 'username')
     .lean();
+
+  // Conteggio commenti per le card, in una sola query
+  const counts = await commentService.countByTasks(tasks.map((t) => t._id));
+  tasks.forEach((t) => { t.commentsCount = counts[t._id.toString()] || 0; });
 
   return {
     todo: tasks.filter((t) => t.status === 'todo'),
