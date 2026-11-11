@@ -161,3 +161,7 @@ Lo stato dei lavori è tracciato nelle [Issue](../../issues) e nella board del p
 ## Autrice
 
 Marguerite El Mbimbey, ITS ICT Piemonte, corso BID Web Development (2025–2027).
+
+## ✅ Riepilogo Roadmap
+
+Tutte le issue previste dalla roadmap sono state completate, commentate e chiuse con successo.
